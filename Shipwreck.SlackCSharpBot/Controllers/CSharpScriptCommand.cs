@@ -23,7 +23,8 @@ namespace Shipwreck.SlackCSharpBot
             private static readonly Regex CONTEXT = new Regex(@"^\s*#context(\s+|$)", RegexOptions.IgnoreCase);
             private static readonly Regex RAW = new Regex(@"^\s*#raw(output)?(\s+|$)", RegexOptions.IgnoreCase);
             private static readonly Regex SOURCE = new Regex(@"^\s*#(source|code)?(\s+|$)", RegexOptions.IgnoreCase);
-            private static readonly Regex USING = new Regex(@"^\s*#using\s+(?<ns>([A-Z_][A-Z0-9_]*\s*\.\s*)[A-Z_][A-Z0-9_]*)\s*;", RegexOptions.IgnoreCase);
+            private static readonly Regex SCOPE = new Regex(@"^\s*#(scope|variables?)(\s+|$)", RegexOptions.IgnoreCase);
+            private static readonly Regex USING = new Regex(@"^\s*#using\s+(?<ns>([A-Z_][A-Z0-9_]*\s*\.\s*)*[A-Z_][A-Z0-9_]*)\s*;", RegexOptions.IgnoreCase);
 
             private readonly CSharpScriptCommand _Command;
             private readonly Message _Message;
@@ -47,6 +48,7 @@ namespace Shipwreck.SlackCSharpBot
 
                 printSettings |= HandleUsing();
                 HandleCode();
+                HandleScope();
 
                 // 設定の表示
                 if (printSettings)
@@ -59,8 +61,8 @@ namespace Shipwreck.SlackCSharpBot
                 {
                     try
                     {
-                        var state = _Command._State; ;
-                        if (_Command._State == null)
+                        var state = _Command._State;
+                        if (state == null)
                         {
                             // 初回
                             state = await CSharpScript.RunAsync(_Code, _Command.GetScriptOptions());
@@ -97,6 +99,14 @@ namespace Shipwreck.SlackCSharpBot
                     catch (Exception ex)
                     {
                         _Result.Append("> ").AppendLine(ex.Message);
+                    }
+                }
+                else
+                {
+                    var state = _Command._State; ;
+                    if (state == null)
+                    {
+
                     }
                 }
 
@@ -201,21 +211,47 @@ namespace Shipwreck.SlackCSharpBot
                             st = st.Previous;
                         }
 
+                        _Result.AppendLine("```");
                         foreach (var s in stack)
                         {
-                            _Result.AppendLine("```");
-                            _Result.Append(s.Code);
-                            if (_Result[_Result.Length - 1] == ';')
+                            if (!string.IsNullOrWhiteSpace(s.Code))
                             {
+                                _Result.Append(s.Code);
+                                if (_Result[_Result.Length - 1] == ';')
+                                {
+                                    _Result.AppendLine();
+                                }
+                                else
+                                {
+                                    _Result.AppendLine(";");
+                                }
                                 _Result.AppendLine();
                             }
-                            else
-                            {
-                                _Result.AppendLine(";");
-                            }
-                            _Result.AppendLine("```");
-                            _Result.AppendLine();
                         }
+                        _Result.AppendLine("```");
+                    }
+                }
+            }
+
+            private void HandleScope()
+            {
+                var m = SCOPE.Match(_Code);
+                if (m.Success)
+                {
+                    _Code = _Code.Substring(m.Length);
+
+                    var st = _Command._State;
+
+                    if (st != null)
+                    {
+                        _Result.AppendLine("# Variables #");
+                        foreach (var a in st.Variables)
+                        {
+                            _Result.Append(" - ").Append(a.Type).Append(' ').Append(a.Name).Append(" = `");
+                            AppendNiceString(_Result, a.Value);
+                            _Result.AppendLine("`;");
+                        }
+                        _Result.AppendLine();
                     }
                 }
             }
@@ -232,7 +268,7 @@ namespace Shipwreck.SlackCSharpBot
                 }
                 else if (v is string)
                 {
-                    AppendString(sb, v);
+                    AppendString(sb, (string)v);
                 }
                 else if (v is byte)
                 {
@@ -300,10 +336,10 @@ namespace Shipwreck.SlackCSharpBot
                 }
             }
 
-            private static void AppendString(StringBuilder sb, object v)
+            private static void AppendString(StringBuilder sb, string v)
             {
                 sb.Append('"');
-                foreach (var c in (string)v)
+                foreach (var c in v)
                 {
                     switch (c)
                     {
@@ -361,7 +397,16 @@ namespace Shipwreck.SlackCSharpBot
                 _Assemblies.AddRange(new[] { typeof(object).Assembly, typeof(Enumerable).Assembly, typeof(XmlDocument).Assembly, typeof(XDocument).Assembly });
 
                 _Namespaces.Clear();
-                _Namespaces.AddRange(new[] { typeof(object).Namespace, typeof(Enumerable).Namespace, typeof(List<>).Namespace, typeof(StringBuilder).Namespace });
+                _Namespaces.AddRange(new[]
+                {
+                    typeof(object).Namespace,
+                    typeof(List<>).Namespace,
+                    typeof(Enumerable).Namespace,
+                    typeof(Task).Namespace,
+                    typeof(StringBuilder).Namespace,
+                    typeof(XmlDocument).Namespace,
+                    typeof(XDocument).Namespace
+                });
             }
         }
     }
