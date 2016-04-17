@@ -376,7 +376,7 @@ namespace Shipwreck.SlackCSharpBot
         private ScriptState _State;
 
         public CSharpScriptCommand()
-            : base(@"^\s*(run|eval(uate)?|csharp|cs|c#)\s+")
+            : base(@"^\s*(run|eval(uate)?|csharp|cs)\s+")
         {
             ResetState();
         }
