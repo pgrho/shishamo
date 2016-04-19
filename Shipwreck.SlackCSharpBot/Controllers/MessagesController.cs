@@ -1,5 +1,6 @@
 ﻿using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
+using Shipwreck.SlackCSharpBot.Scripting;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -9,6 +10,7 @@ namespace Shipwreck.SlackCSharpBot
     public class MessagesController : ApiController
     {
         private static readonly MessageCommand[] _Commands = {
+            new FishPixCommand(),
             new CSharpScriptCommand()
         };
 

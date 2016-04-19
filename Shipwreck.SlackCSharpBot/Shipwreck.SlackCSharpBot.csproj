@@ -111,6 +111,7 @@
       <HintPath>..\packages\System.Reflection.Metadata.1.2.0\lib\portable-net45+win8\System.Reflection.Metadata.dll</HintPath>
       <Private>True</Private>
     </Reference>
+    <Reference Include="System.Runtime.Serialization" />
     <Reference Include="System.Web.DynamicData" />
     <Reference Include="System.Web.Entity" />
     <Reference Include="System.Web.ApplicationServices" />
@@ -141,10 +142,13 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
-    <Compile Include="Controllers\CSharpScriptCommand.cs" />
+    <Compile Include="Controllers\FishPixCommand.cs" />
+    <Compile Include="Controllers\Scripting\CSharpExecutionContext.cs" />
+    <Compile Include="Controllers\Scripting\CSharpScriptCommand.cs" />
     <Compile Include="Controllers\MessageCommand.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
     <Compile Include="Controllers\RegexMessageCommand.cs" />
+    <Compile Include="Controllers\Scripting\CSharpScriptState.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
