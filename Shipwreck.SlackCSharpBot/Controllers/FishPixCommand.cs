@@ -11,7 +11,7 @@ using System.IO;
 using System.Web.Script.Serialization;
 using System.Text;
 
-namespace Shipwreck.SlackCSharpBot
+namespace Shipwreck.SlackCSharpBot.Controllers
 {
     internal sealed class FishPixCommand : RegexMessageCommand
     {
@@ -22,6 +22,7 @@ namespace Shipwreck.SlackCSharpBot
             StartsWith,
             EndsWith
         }
+
         [DataContract]
         public class FishImageResult
         {

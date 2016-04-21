@@ -1,10 +1,10 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.Bot.Connector;
 using Microsoft.CodeAnalysis.CSharp.Scripting;
 using Microsoft.CodeAnalysis.Scripting;
+using System;
 using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -14,9 +14,8 @@ using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Shipwreck.SlackCSharpBot.Scripting
+namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 {
-
     internal sealed class CSharpScriptState
     {
         private readonly List<Assembly> _Assemblies = new List<Assembly>();
@@ -165,5 +164,4 @@ namespace Shipwreck.SlackCSharpBot.Scripting
             }
         }
     }
-
 }

@@ -2,7 +2,7 @@ using Microsoft.Bot.Connector;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
-namespace Shipwreck.SlackCSharpBot
+namespace Shipwreck.SlackCSharpBot.Controllers
 {
     public abstract class RegexMessageCommand : MessageCommand
     {

@@ -14,7 +14,7 @@ using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Shipwreck.SlackCSharpBot.Scripting
+namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 {
     internal sealed class CSharpExecutionContext
     {

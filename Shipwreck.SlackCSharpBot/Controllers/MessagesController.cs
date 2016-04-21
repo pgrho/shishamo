@@ -1,10 +1,10 @@
 ﻿using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
-using Shipwreck.SlackCSharpBot.Scripting;
+using Shipwreck.SlackCSharpBot.Controllers.Scripting;
 using System.Threading.Tasks;
 using System.Web.Http;
 
-namespace Shipwreck.SlackCSharpBot
+namespace Shipwreck.SlackCSharpBot.Controllers
 {
     [BotAuthentication]
     public class MessagesController : ApiController
