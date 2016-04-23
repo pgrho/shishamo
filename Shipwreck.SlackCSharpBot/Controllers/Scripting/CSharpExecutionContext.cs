@@ -4,6 +4,7 @@ using Microsoft.CodeAnalysis.Scripting;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.Serialization;
@@ -78,6 +79,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 }
                 catch (Exception ex)
                 {
+                    HttpContext.Current.Request.SaveAs(Path.Combine(Path.GetTempPath(), $"{nameof(CSharpExecutionContext)}.{DateTime.Now:yyyyMMddHHmmssffffff}.txt"), true);
+
                     _Result.Append("> ").AppendLine(ex.Message);
                 }
             }

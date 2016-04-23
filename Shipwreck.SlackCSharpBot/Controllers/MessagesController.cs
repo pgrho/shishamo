@@ -1,6 +1,7 @@
 ﻿using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using Shipwreck.SlackCSharpBot.Controllers.Scripting;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web.Http;
 
@@ -9,6 +10,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
     [BotAuthentication]
     public class MessagesController : ApiController
     {
+        private static readonly Regex UrlPattern = new Regex(@"<(?<url>(https?|ftp):\/\/[^>]+)\s*/>");
+
         private static readonly MessageCommand[] _Commands = {
             new FishPixCommand(),
             new CSharpScriptCommand()
@@ -23,6 +26,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             if (message.Type == "Message")
             {
                 var code = message.Text;
+
+                code = UrlPattern.Replace(code, m => m.Groups["url"].Value);
 
                 foreach (var cmd in _Commands)
                 {
