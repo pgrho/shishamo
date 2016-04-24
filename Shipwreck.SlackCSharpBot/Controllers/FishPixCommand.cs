@@ -59,7 +59,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             {
                 return message.CreateReplyMessage("該当する:fish:が見つかりませんでした。");
             }
-            return message.CreateReplyMessage($":fish:和名: {f.JapaneseName}\r\n:fish:学名: {f.LatinName}\r\n{f.ImageUrl}#{DateTime.Now.Ticks}");
+            return message.CreateReplyMessage($":fish:和名: {f.JapaneseName}\n\n:fish:学名: {f.LatinName}\n\n{f.ImageUrl}#{DateTime.Now.Ticks}");
         }
 
         private async static Task<FishImage> GetImage(string name, MatchOperator @operator)
