@@ -10,7 +10,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
     [BotAuthentication]
     public class MessagesController : ApiController
     {
-        private static readonly Regex UrlPattern = new Regex(@"<(?<url>(https?|ftp):\/\/[^>]+)\s*/>");
+        private static readonly Regex UserPattern = new Regex(@"<(?<type>[#@])(?<id>[^>|]+)(\|(?<disp>[^>]+))?>");
+        private static readonly Regex UrlPattern = new Regex(@"<(?<url>(https?|ftp):\/\/[^>|]+)(\|(?<disp>[^>]+))?>");
 
         private static readonly MessageCommand[] _Commands = {
             new FishPixCommand(),
@@ -27,7 +28,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             {
                 var code = message.Text;
 
-                code = UrlPattern.Replace(code, m => m.Groups["url"].Value);
+                code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
+                code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
 
                 foreach (var cmd in _Commands)
                 {

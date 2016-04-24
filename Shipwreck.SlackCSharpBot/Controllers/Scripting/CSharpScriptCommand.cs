@@ -57,9 +57,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 }
                 else
                 {
-                    sb.Append("```").NewLine();
-                    sb.Append(r.Code.Replace(Environment.NewLine, StringBuilderHelper.NEW_LINE));
-                    sb.Append("```").NewLine();
+                    sb.Append("```").Append('\n');
+                    sb.Append(r.Code.Replace(Environment.NewLine, StringBuilderHelper.NEW_LINE)).Append('\n');
+                    sb.Append("```").Append('\n');
                 }
                 sb.NewLine();
             }
@@ -71,7 +71,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 {
                     foreach (var v in r.Variables)
                     {
-                        sb.AppendType(v.Type, ns).Append(' ').Append(v.Name).Append(" = ```").AppendNiceString(v.Value, ns, false).Append("```;").NewLine();
+                        sb.AppendType(v.Type, ns).Append(' ').Append(v.Name).Append(" = ```").AppendNiceString(v.Value, ns, false).Append("```;\n");
                     }
                 }
                 else
@@ -101,9 +101,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                     }
                     else
                     {
-                        sb.Append("```");
+                        sb.Append("```\n");
                         sb.AppendNiceString(r.ReturnValue, ns, true);
-                        sb.Append("```");
+                        sb.Append("```\n");
                     }
                 }
             }
@@ -113,7 +113,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 HttpContext.Current.Request.SaveAs(Path.Combine(Path.GetTempPath(), $"{nameof(CSharpScriptCommand)}.{DateTime.Now:yyyyMMddHHmmssffffff}.txt"), true);
             }
 
-            return message.CreateReplyMessage(sb.ToString());
+            var m = message.CreateReplyMessage(sb.ToString());
+            
+            return m;
         }
     }
 }
