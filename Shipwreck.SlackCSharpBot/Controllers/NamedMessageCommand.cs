@@ -10,7 +10,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
     public abstract class NamedMessageCommand : RegexMessageCommand
     {
         protected NamedMessageCommand(string name, string help)
-            : base($"^!{Regex.Escape(name)}\\s+")
+            : base($"^!{Regex.Escape(name)}(\\s+|$)")
         {
             Name = name;
             Help = help;

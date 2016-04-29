@@ -14,13 +14,18 @@ using System.Web;
 using System.Xml;
 using System.Xml.Linq;
 
-namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
+namespace Shipwreck.SlackCSharpBot.Controllers
 {
     internal static class StringBuilderHelper
     {
         public const string NEW_LINE = "\n\n";
+        public const string SUCCESS = ":ok_hand:";
+        public const string ERROR = ":exclamation:";
+        public const string WARNING = ":warning:";
 
         public static StringBuilder NewLine(this StringBuilder sb) => sb.Append(NEW_LINE);
+
+        public static StringBuilder Success(this StringBuilder sb) => sb.Append(":ok_hand:");
 
         public static StringBuilder Error(this StringBuilder sb) => sb.Append(":exclamation:");
 

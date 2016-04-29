@@ -9,6 +9,7 @@ using System.Web.Http;
 using System;
 using System.Text;
 using System.Linq;
+using Shipwreck.SlackCSharpBot.Controllers.Sachiko;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
@@ -31,8 +32,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             _Commands = new List<MessageCommand>()
             {
                 new HelpCommand(),
+                new CSharpScriptCommand(),
                 new FishPixCommand(),
-                new CSharpScriptCommand()
+                new SachikoCommand(),
+                new IdolMasterCommand()
             };
         }
 
@@ -45,46 +48,50 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
         /// </summary>
-        public async Task<Message> Post([FromBody]Message message)
+        public Task<Message> Post([FromBody]Message message)
         {
             if (message.Type == "Message")
             {
-                var code = message.Text;
-
-                code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
-                code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
-
-                if (_Mutex.WaitOne(15000))
-                {
-                    _Mutex.Reset();
-                    try
-                    {
-                        foreach (var cmd in _Commands)
-                        {
-                            var t = cmd.TryExecuteAsync(message, code);
-
-                            if (t != null)
-                            {
-                                return await t;
-                            }
-                        }
-                    }
-                    finally
-                    {
-                        _Mutex.Set();
-                    }
-                }
-                else
-                {
-                    message.CreateReplyMessage(":exclamation:15秒以内に直前のコマンドが終了しませんでした。");
-                }
-
-                return null;
+                return PostCore(message, message.Text);
             }
             else
             {
-                return HandleSystemMessage(message);
+                return Task.FromResult(HandleSystemMessage(message));
             }
+        }
+
+
+        internal async Task<Message> PostCore(Message message, string code)
+        {
+            code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
+            code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
+
+            if (_Mutex.WaitOne(15000))
+            {
+                _Mutex.Reset();
+                try
+                {
+                    foreach (var cmd in _Commands)
+                    {
+                        var t = cmd.TryExecuteAsync(message, code);
+
+                        if (t != null)
+                        {
+                            return await t;
+                        }
+                    }
+                }
+                finally
+                {
+                    _Mutex.Set();
+                }
+            }
+            else
+            {
+                message.CreateReplyMessage(":exclamation:15秒以内に直前のコマンドが終了しませんでした。");
+            }
+
+            return null;
         }
 
         private Message HandleSystemMessage(Message message)
