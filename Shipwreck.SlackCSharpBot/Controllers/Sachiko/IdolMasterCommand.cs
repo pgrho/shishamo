@@ -20,7 +20,31 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
             public string Name { get; set; }
             public string Kana { get; set; }
 
-            public string[] ImageTokens { get; set; }
+            //    public string[] ImageTokens { get; set; }
+
+            public IdolImage PickRandom(string rarity = null)
+            {
+                var isNormal = rarity?.StartsWith("n", StringComparison.InvariantCultureIgnoreCase) == true;
+                var isRare = rarity?.StartsWith("r", StringComparison.InvariantCultureIgnoreCase) == true;
+                var isSRare = rarity?.StartsWith("sr", StringComparison.InvariantCultureIgnoreCase) == true;
+                var isPlus = rarity?.EndsWith("+");
+
+                var ary = Images.Where(_ => (!isNormal || _.Rarity?.Equals("normal", StringComparison.InvariantCultureIgnoreCase) == true)
+                                  && (!isRare || _.Rarity?.Equals("rare", StringComparison.InvariantCultureIgnoreCase) == true)
+                                  && (!isSRare || _.Rarity?.Equals("srare", StringComparison.InvariantCultureIgnoreCase) == true)
+                                  && (isPlus == null || _.Headline?.EndsWith("+") == isPlus)).ToArray();
+
+                if (ary.Any())
+                {
+                    var img = ary[new Random().Next(ary.Length)];
+
+                    return img;
+                }
+
+                return null;
+            }
+
+            public IdolImage[] Images { get; set; }
 
             public async Task InitImageTokensAsync()
             {
@@ -37,8 +61,82 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
                     }
                 }
 
-                ImageTokens = doc.DocumentNode.Descendants("a").Where(a => a.GetAttributeValue("class", "").Contains("swap-card")).Select(a => a.GetAttributeValue("href", "").Split('=').Last()).ToArray();
+                var imgs = new List<IdolImage>();
+                foreach (var a in doc.DocumentNode.Descendants("a").Where(a => a.GetAttributeValue("class", "") == "swap-card"))
+                {
+                    var div = a.ParentNode.ParentNode;
+
+                    var inftable = div.Descendants("table").Where(_ => _.GetAttributeValue("class", "") == "bcinf").FirstOrDefault(_ => _.Descendants("th").Any(h => h.InnerText.Contains("レア度")));
+
+                    var tr1 = inftable.Descendants("tr").ElementAt(1).Descendants("td").ToArray();
+                    var tr3 = inftable.Descendants("tr").ElementAt(3).Descendants("td").ToArray();
+
+                    var img = new IdolImage()
+                    {
+                        Headline = div.Descendants("h2").FirstOrDefault(_ => _.GetAttributeValue("class", "") == "headline")?.InnerText?.Trim(),
+                        Hash = a.GetAttributeValue("href", "").Split('=').Last(),
+
+                        Rarity = tr1[0].InnerText,
+                        Type = tr1[1].InnerText,
+                        BloodType = tr1[2].InnerText,
+                        Height = tr1[3].InnerText,
+                        Weight = tr1[4].InnerText,
+                        ThreeSize = tr1[5].InnerText,
+
+                        Age = tr3[0].InnerText,
+                        Birthday = tr3[1].InnerText,
+                        SunSign = tr3[2].InnerText,
+                        Birthplace = tr3[3].InnerText,
+                        Hobby = tr3[4].InnerText,
+                        Handedness = tr3[5].InnerText,
+                    };
+
+                    imgs.Add(img);
+                }
+
+                Images = imgs.ToArray();
             }
+        }
+
+        private class IdolImage
+        {
+            public string Headline { get; set; }
+
+            public string Hash { get; set; }
+
+            public string Rarity { get; set; }
+            public string Type { get; set; }
+
+            public string BloodType { get; set; }
+
+            public string Height { get; set; }
+
+            public string Weight { get; set; }
+
+            public string ThreeSize { get; set; }
+
+            public string Age { get; set; }
+            public string Birthday { get; set; }
+            public string SunSign { get; set; }
+
+            public string Birthplace { get; set; }
+            public string Hobby { get; set; }
+            public string Handedness { get; set; }
+
+            public string ImageUrl
+                => $"http://gamedb.squares.net/idolmaster/image_sp/card/l/{Hash}.jpg";
+
+            public string NoFrameImageUrl
+                => $"http://gamedb.squares.net/idolmaster/image_sp/card/l_noframe/{Hash}.jpg";
+
+            public string QuestImageUrl
+                => $"http://gamedb.squares.net/idolmaster/image_sp/card/quest/{Hash}.jpg";
+
+            public string LSImageUrl
+                => $"http://gamedb.squares.net/idolmaster/image_sp/card/ls/{Hash}.jpg";
+
+            public string XSImageUrl
+                => $"http://gamedb.squares.net/idolmaster/image_sp/card/xs/{Hash}.jpg";
         }
 
         private static Idol[] Idols;
@@ -50,15 +148,17 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
 
         protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
         {
-            var url = await GetIdolImageUrlAsync(text.Trim());
+            var tr = text.Trim();
+            var sp = tr.Split(new[] { ' ' }, 2);
+            var url = await GetIdolImageUrlAsync(sp.FirstOrDefault(), sp.ElementAtOrDefault(1));
             if (url != null)
             {
                 return message.CreateReplyMessage($"{url}#{DateTime.Now.Ticks}");
             }
-            return null;
+            return message.CreateReplyMessage("該当する画像が見つかりませんでした。");
         }
 
-        public async Task<string> GetIdolImageUrlAsync(string name)
+        public async Task<string> GetIdolImageUrlAsync(string name, string rarity = null)
         {
             if (Idols == null)
             {
@@ -72,15 +172,16 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
 
             if (n != null)
             {
-                if (n.ImageTokens == null)
+                if (n.Images == null)
                 {
                     await n.InitImageTokensAsync();
                 }
-                if (n.ImageTokens.Any())
-                {
-                    var id = n.ImageTokens[new Random().Next(n.ImageTokens.Length)];
 
-                    return $"http://gamedb.squares.net/idolmaster/image_sp/card/l/{id}.jpg";
+                var img = n.PickRandom(rarity);
+
+                if (img != null)
+                {
+                    return img.ImageUrl;
                 }
             }
 
