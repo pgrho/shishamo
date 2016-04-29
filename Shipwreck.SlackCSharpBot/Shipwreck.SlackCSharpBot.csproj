@@ -154,6 +154,8 @@
     <Compile Include="Controllers\RegexMessageCommand.cs" />
     <Compile Include="Controllers\Scripting\CSharpScriptResult.cs" />
     <Compile Include="Controllers\Scripting\CSharpScriptState.cs" />
+    <Compile Include="Controllers\Scripting\GlobalObject.cs" />
+    <Compile Include="Controllers\Scripting\PseudoConsole.cs" />
     <Compile Include="Controllers\Scripting\StringBuilderHelper.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>

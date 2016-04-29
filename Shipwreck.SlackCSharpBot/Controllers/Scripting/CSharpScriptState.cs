@@ -25,6 +25,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 
         private bool _OptionsChanged;
 
+        internal GlobalObject Globals { get; private set; }
+
         public CSharpScriptState()
         {
             ResetState();
@@ -36,7 +38,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             if (state == null)
             {
                 // 初回
-                state = await CSharpScript.RunAsync(code, GetScriptOptions());
+                state = await CSharpScript.RunAsync(code, GetScriptOptions(), globals: Globals);
             }
             else
             {
@@ -62,6 +64,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             lock (_Assemblies)
             {
                 _State = null;
+                Globals = new GlobalObject();
+
 
                 _Assemblies.Clear();
                 _Assemblies.AddRange(new[]

@@ -99,6 +99,13 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 }
                 if (r.CodeEvaluated)
                 {
+                    if (!string.IsNullOrEmpty(r.StandardOutput))
+                    {
+                        sb.Append("# 標準出力").NewLine();
+
+                        sb.Append(r.StandardOutput).NewLine();
+                    }
+
                     if (r.Exception != null)
                     {
                         sb.Error().Append('`').Append(r.Exception.GetType().FullName).Append('`').NewLine();

@@ -44,6 +44,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
         public object ReturnValue { get; set; }
 
         public Exception Exception { get; set; }
+
+        public string StandardOutput { get; set; }
     }
 
 }

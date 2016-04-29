@@ -95,18 +95,16 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 result.Namespaces = _State.GetNamespaces();
             }
 
-            if (!result.IsStatefull)
-            {
-                MessagesController.ReleaseMutex();
-            }
-
             // コードの評価
             if (!string.IsNullOrWhiteSpace(_Code))
             {
                 result.CodeEvaluated = true;
                 try
                 {
-                    result.ReturnValue = result.IsStatefull ? (await _State.RunAsync(_Code)).ReturnValue : await CSharpScript.EvaluateAsync(_Code);
+                    var go = result.IsStatefull ? _State.Globals : new GlobalObject();
+                    go.Clear();
+                    result.ReturnValue = result.IsStatefull ? (await _State.RunAsync(_Code)).ReturnValue : await CSharpScript.EvaluateAsync(_Code, globals: go);
+                    result.StandardOutput = go.StandardOutput;
                 }
                 catch (Exception ex)
                 {
