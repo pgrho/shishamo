@@ -19,17 +19,48 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 {
     internal sealed class CSharpExecutionContext
     {
-        private static readonly Regex RESET = new Regex(@"^\s*#reset(\s+|$)", RegexOptions.IgnoreCase);
-        private static readonly Regex CONTEXT = new Regex(@"^\s*#(context|ns|namespaces?)(\s+|$)", RegexOptions.IgnoreCase);
-        private static readonly Regex RAW = new Regex(@"^\s*#raw(output)?(\s+|$)", RegexOptions.IgnoreCase);
-        private static readonly Regex SOURCE = new Regex(@"^\s*#(source|code)?(\s+|$)", RegexOptions.IgnoreCase);
-        private static readonly Regex SCOPE = new Regex(@"^\s*#(scope|variables?)(\s+|$)", RegexOptions.IgnoreCase);
-        private static readonly Regex USING = new Regex(@"^\s*#using\s+(?<ns>([A-Z_][A-Z0-9_]*\s*\.\s*)*[A-Z_][A-Z0-9_]*)\s*;", RegexOptions.IgnoreCase);
-        private static readonly Regex LOG = new Regex(@"^\s*#(log|debug|request)?(\s+|$)", RegexOptions.IgnoreCase);
+        internal static readonly CSharpDirective[] _DIRECTIVES = {
+            new CSharpDirective("reset", "reset", (m, s, r) =>
+            {
+                s.ResetState();
+                r.ShowNamespaces = true;
+            }, "C#スクリプトの状態を初期化します。"),
+            new CSharpDirective("context", "(context|ns|namespaces?)", (m, s, r) => r.ShowNamespaces = true, "usingされている名前空間を表示します。"),
+            new CSharpDirective("using",
+                    "using",
+                    @"([A-Z_][A-Z0-9_]*\s*\.\s*)*[A-Z_][A-Z0-9_]*",
+                    (m, s, r) =>
+                    {
+                        s.AddNamespace(m.Groups["v"].Value);
+                        r.ShowNamespaces = true;
+                    }, "usingする名前空間を追加します。"),
+
+            new CSharpDirective(
+                    "format",
+                    "format",
+                    "true|t|yes|y|formatted|false|f|no|n|raw",
+                    (m, s, r) => r.IsFormatted  = Regex.IsMatch(m.Groups["v"].Value,"^(true|t|yes|y|formatted)$", RegexOptions.IgnoreCase),
+                    "出力を整形するかどうか指定します。"),
+            new CSharpDirective("raw", "raw(output)?", (m, s, r) => r.IsFormatted = false, "出力を整形しないことを指定します。"),
+
+            new CSharpDirective(
+                    "state",
+                    "state",
+                    "true|t|yes|y|full|false|f|no|n|none",
+                    (m, s, r) => r.IsStatefull  = Regex.IsMatch(m.Groups["v"].Value,"^(true|t|yes|y|false)$", RegexOptions.IgnoreCase),
+                    "C#スクリプトの状態を使用するかどうかを指定します。"),
+            new CSharpDirective("statefull","statefull", (m, s, r) => r.IsStatefull = true, "C#スクリプトの状態を使用することを指定します。"),
+            new CSharpDirective("stateless","stateless", (m, s, r) => r.IsStatefull = false, "C#スクリプトの状態を使用しないことを指定します。"),
+
+            new CSharpDirective("source", "(source|code|sourcecode)", (m, s, r) => r.Code = s.GetCode() ?? string.Empty, "直前の状態で評価済みのソースコードを出力します。"),
+
+            new CSharpDirective("scope", "(scope|variables?)", (m, s, r) => r.Variables = s.GetVariables().ToArray(), "直前の状態で評価されている変数を出力します。"),
+
+            new CSharpDirective("log", "(log|debug|request)", (m, s, r) => r.OutputLog = true, null)
+        };
 
         private readonly CSharpScriptState _State;
 
-        //  private readonly StringBuilder _Result;
         private string _Code;
 
         public CSharpExecutionContext(CSharpScriptState command, string text)
@@ -42,37 +73,40 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
         {
             var result = new CSharpScriptResult();
 
-            var printSettings = false;
+            if (Regex.IsMatch(_Code, @"^\s*\/?(help|usage|\?|h|u)\s*$", RegexOptions.IgnoreCase))
+            {
+                result.ShowHelp = true;
+                return result;
+            }
 
             int pc;
             do
             {
                 pc = _Code.Length;
-                printSettings |= HandleReset();
-                printSettings |= HandleContext();
-
-                result.IsRaw |= HandleRaw();
-
-                printSettings |= HandleUsing();
-                result.Code = HandleCode() ?? result.Code;
-                result.Variables = HandleScope() ?? result.Variables;
-                result.OutputLog |= HandleLog();
+                foreach (var d in _DIRECTIVES)
+                {
+                    d.Apply(ref _Code, _State, result);
+                }
             } while (_Code.Length < pc);
 
             // 設定の表示
-            if (printSettings)
+            if (result.ShowNamespaces)
             {
                 result.Namespaces = _State.GetNamespaces();
+            }
+
+            if (!result.IsStatefull)
+            {
+                MessagesController.ReleaseMutex();
             }
 
             // コードの評価
             if (!string.IsNullOrWhiteSpace(_Code))
             {
-                result.Evaluated = true;
+                result.CodeEvaluated = true;
                 try
                 {
-                    var state = await _State.RunAsync(_Code);
-                    result.ReturnValue = state.ReturnValue;
+                    result.ReturnValue = result.IsStatefull ? (await _State.RunAsync(_Code)).ReturnValue : await CSharpScript.EvaluateAsync(_Code);
                 }
                 catch (Exception ex)
                 {
@@ -82,98 +116,5 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 
             return result;
         }
-
-        #region ディレクティブ
-
-        private bool HandleReset()
-        {
-            var m = RESET.Match(_Code);
-
-            if (m.Success)
-            {
-                _Code = _Code.Substring(m.Length);
-                _State.ResetState();
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool HandleContext()
-        {
-            var m = CONTEXT.Match(_Code);
-
-            if (m.Success)
-            {
-                _Code = _Code.Substring(m.Length);
-                return true;
-            }
-
-            return false;
-        }
-
-        private bool HandleRaw()
-        {
-            var raw = false;
-            for (var m = RAW.Match(_Code); m.Success; m = RAW.Match(_Code))
-            {
-                raw = true;
-                _Code = _Code.Substring(m.Length);
-            }
-
-            return raw;
-        }
-
-        private bool HandleUsing()
-        {
-            List<string> newNs = null;
-            for (var m = USING.Match(_Code); m.Success; m = USING.Match(_Code))
-            {
-                (newNs ?? (newNs = new List<string>())).Add(m.Groups["ns"].Value);
-                _Code = _Code.Substring(m.Length);
-            }
-
-            _State.AddNamespaces(newNs);
-
-            return newNs != null;
-        }
-
-        private string HandleCode()
-        {
-            var m = SOURCE.Match(_Code);
-            if (m.Success)
-            {
-                _Code = _Code.Substring(m.Length);
-
-                return _State.GetCode() ?? string.Empty;
-            }
-            return null;
-        }
-
-        private ScriptVariable[] HandleScope()
-        {
-            var m = SCOPE.Match(_Code);
-            if (m.Success)
-            {
-                _Code = _Code.Substring(m.Length);
-
-                return _State.GetVariables().ToArray();
-            }
-            return null;
-        }
-        private bool HandleLog()
-        {
-            var m = LOG.Match(_Code);
-
-            if (m.Success)
-            {
-                _Code = _Code.Substring(m.Length);
-                return true;
-            }
-
-            return false;
-        }
-
-        #endregion ディレクティブ
     }
 }

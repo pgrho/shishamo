@@ -145,6 +145,24 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             }
         }
 
+        public void AddNamespace(string ns)
+        {
+            if (ns == null)
+            {
+                return;
+            }
+
+            ns = Regex.Replace(ns, "\\s", "");
+
+            lock (_Assemblies)
+            {
+                if (!_Namespaces.Contains(ns))
+                {
+                    _Namespaces.Add(ns);
+                    _OptionsChanged = true;
+                }
+            }
+        }
         public void AddNamespaces(IEnumerable<string> newNs)
         {
             if (newNs == null)
@@ -155,9 +173,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             {
                 foreach (var ns in newNs)
                 {
-                    if (!_Namespaces.Contains(ns))
+                    var v = Regex.Replace(ns, "\\s", "");
+                    if (!_Namespaces.Contains(v))
                     {
-                        _Namespaces.Add(ns);
+                        _Namespaces.Add(v);
                         _OptionsChanged = true;
                     }
                 }

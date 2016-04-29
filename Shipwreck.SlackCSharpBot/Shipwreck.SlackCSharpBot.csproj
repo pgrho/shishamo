@@ -144,6 +144,9 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\FishPixCommand.cs" />
+    <Compile Include="Controllers\HelpCommand.cs" />
+    <Compile Include="Controllers\NamedMessageCommand.cs" />
+    <Compile Include="Controllers\Scripting\CSharpDirective.cs" />
     <Compile Include="Controllers\Scripting\CSharpExecutionContext.cs" />
     <Compile Include="Controllers\Scripting\CSharpScriptCommand.cs" />
     <Compile Include="Controllers\MessageCommand.cs" />

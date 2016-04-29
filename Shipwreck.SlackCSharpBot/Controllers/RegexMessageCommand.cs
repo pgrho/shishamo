@@ -31,5 +31,4 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         protected abstract Task<Message> ExecuteAsyncCore(Message message, string text);
     }
-
 }

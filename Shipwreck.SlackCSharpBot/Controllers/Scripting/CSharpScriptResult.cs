@@ -20,21 +20,30 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 
     internal sealed class CSharpScriptResult
     {
-        public bool IsRaw { get; set; }
+        internal string Code { get; set; }
+
+        public bool IsFormatted { get; set; } = true;
+
+        public bool IsStatefull { get; set; } = true;
+
+        public bool ShowHelp { get; set; }
+
+        public bool ShowNamespaces { get; set; }
 
         public IReadOnlyCollection<string> Namespaces { get; set; }
 
-        public string Code { get; set; }
 
         public IReadOnlyCollection<ScriptVariable> Variables { get; set; }
 
-        public bool Evaluated { get; set; }
+        public bool OutputLog { get; set; }
+
+
+
+        public bool CodeEvaluated { get; set; }
 
         public object ReturnValue { get; set; }
 
         public Exception Exception { get; set; }
-
-        public bool OutputLog { get; set; }
     }
 
 }

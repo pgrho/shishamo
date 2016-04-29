@@ -13,7 +13,7 @@ using System.Text;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
-    internal sealed class FishPixCommand : RegexMessageCommand
+    internal sealed class FishPixCommand : NamedMessageCommand
     {
         public enum MatchOperator
         {
@@ -44,12 +44,15 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         }
 
         public FishPixCommand()
-            : base(@"^\s*(魚類?(写真)?(資料)?(|DB|データベース)|sakana|fish)\s+")
+            : base("fish", "魚類写真資料データベースの検索を行います。")
         {
         }
 
         protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
         {
+            // ロックは不要なのでリリースします。
+            MessagesController.ReleaseMutex();
+
             var n = (text ?? string.Empty).Trim();
             var f = (await GetImage(n, MatchOperator.Equal))
                     ?? (await GetImage(n, MatchOperator.EndsWith))
