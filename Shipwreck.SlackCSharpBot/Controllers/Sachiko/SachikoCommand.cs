@@ -40,8 +40,15 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
 
                     var rec = new SachikoRecord();
 
-                    var dv = rec.Date = string.IsNullOrEmpty(d) ? DateTime.Now : DateTime.Parse(d);
                     var lv = rec.Difference = long.Parse(v);
+
+                    if (lv == 0)
+                    {
+                        sb.Warning().Append("金額に変動がないためキャンセルされました。");
+                        return message.CreateReplyMessage(sb.ToString());
+                    }
+                    var dv = rec.Date = string.IsNullOrEmpty(d) ? DateTime.Now : DateTime.Parse(d);
+
                     rec.Comment = string.IsNullOrWhiteSpace(c) ? null : c;
 
                     var pt = await db.Records
@@ -70,7 +77,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
                         @"{0:yyyy/MM/dd}の{1:""\""#,0}の{2} ({3})を追加しました。合計金額は{4:""\""#,0}です。",
                         rec.Date,
                         Math.Abs(rec.Difference),
-                        rec.Difference > 0 ? "支出" : "収入",
+                        rec.Difference > 0 ? "収入" : "支出",
                         rec.Comment ?? "コメントなし",
                         (aft.LastOrDefault() ?? rec).Total);
 
@@ -104,7 +111,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
                         }
 
                         await db.SaveChangesAsync();
-                        sb.Success().AppendFormat(@"{0:yyyy/MM/dd}の{1:""\""#,0}の{2} ({3})を取り消しました。", r.Date, Math.Abs(r.Difference), r.Difference > 0 ? "支出" : "収入", r.Comment ?? "コメントなし");
+                        sb.Success().AppendFormat(@"{0:yyyy/MM/dd}の{1:""\""#,0}の{2} ({3})を取り消しました。", r.Date, Math.Abs(r.Difference), r.Difference > 0 ? "収入" : "支出", r.Comment ?? "コメントなし");
                     }
                     else
                     {
