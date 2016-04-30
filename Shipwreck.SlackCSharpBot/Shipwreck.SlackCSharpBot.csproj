@@ -158,7 +158,10 @@
     <Compile Include="Controllers\FishPixCommand.cs" />
     <Compile Include="Controllers\HelpCommand.cs" />
     <Compile Include="Controllers\NamedMessageCommand.cs" />
+    <Compile Include="Controllers\Sachiko\IdolImage.cs" />
+    <Compile Include="Controllers\Sachiko\IdolImageResult.cs" />
     <Compile Include="Controllers\Sachiko\IdolMasterCommand.cs" />
+    <Compile Include="Controllers\Sachiko\SachikoAdmin.cs" />
     <Compile Include="Controllers\Sachiko\SachikoCommand.cs" />
     <Compile Include="Controllers\Sachiko\SachikoDbContext.cs" />
     <Compile Include="Controllers\Sachiko\SachikoRecord.cs" />
