@@ -1,5 +1,6 @@
 ﻿using HtmlAgilityPack;
 using Microsoft.Bot.Connector;
+using Shipwreck.SlackCSharpBot.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
 
-namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
+namespace Shipwreck.SlackCSharpBot.Controllers
 {
     internal sealed class IdolMasterCommand : NamedMessageCommand
     {

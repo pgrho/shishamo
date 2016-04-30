@@ -155,16 +155,17 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\EchoSharpCommand.cs" />
+    <Compile Include="Controllers\EchoSharpUserCommand.cs" />
     <Compile Include="Controllers\FishPixCommand.cs" />
     <Compile Include="Controllers\HelpCommand.cs" />
     <Compile Include="Controllers\NamedMessageCommand.cs" />
-    <Compile Include="Controllers\Sachiko\IdolImage.cs" />
-    <Compile Include="Controllers\Sachiko\IdolImageResult.cs" />
-    <Compile Include="Controllers\Sachiko\IdolMasterCommand.cs" />
-    <Compile Include="Controllers\Sachiko\SachikoAdmin.cs" />
-    <Compile Include="Controllers\Sachiko\SachikoCommand.cs" />
-    <Compile Include="Controllers\Sachiko\SachikoDbContext.cs" />
-    <Compile Include="Controllers\Sachiko\SachikoRecord.cs" />
+    <Compile Include="Models\IdolImage.cs" />
+    <Compile Include="Models\IdolImageResult.cs" />
+    <Compile Include="Controllers\IdolMasterCommand.cs" />
+    <Compile Include="Models\SachikoAdmin.cs" />
+    <Compile Include="Controllers\SachikoCommand.cs" />
+    <Compile Include="Models\SachikoRecord.cs" />
     <Compile Include="Controllers\Scripting\CSharpDirective.cs" />
     <Compile Include="Controllers\Scripting\CSharpExecutionContext.cs" />
     <Compile Include="Controllers\Scripting\CSharpScriptCommand.cs" />
@@ -179,6 +180,8 @@
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\EchoSharpEntry.cs" />
+    <Compile Include="Models\ShishamoDbContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

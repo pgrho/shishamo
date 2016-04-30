@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 using System.Web;
 using System.Web.Script.Serialization;
 
-namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
+namespace Shipwreck.SlackCSharpBot.Models
 {
     internal sealed class IdolImageResult
     {

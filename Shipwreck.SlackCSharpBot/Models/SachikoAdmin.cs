@@ -10,7 +10,7 @@ using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
 
-namespace Shipwreck.SlackCSharpBot.Controllers.Sachiko
+namespace Shipwreck.SlackCSharpBot.Models
 {
     internal sealed class SachikoAdmin
     {

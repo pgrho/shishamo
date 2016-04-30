@@ -1,15 +1,14 @@
 ﻿using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using Shipwreck.SlackCSharpBot.Controllers.Scripting;
+using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System;
-using System.Text;
-using System.Linq;
-using Shipwreck.SlackCSharpBot.Controllers.Sachiko;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
@@ -26,16 +25,17 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         static MessagesController()
         {
-            _Mutex = new EventWaitHandle(true, EventResetMode.ManualReset);
-
+            _Mutex = new EventWaitHandle(true, EventResetMode.AutoReset);
 
             _Commands = new List<MessageCommand>()
             {
                 new HelpCommand(),
                 new CSharpScriptCommand(),
+                new EchoSharpCommand(),
                 new FishPixCommand(),
                 new SachikoCommand(),
-                new IdolMasterCommand()
+                new IdolMasterCommand(),
+                new EchoSharpUserCommand()
             };
         }
 
@@ -50,9 +50,14 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         /// </summary>
         public Task<Message> Post([FromBody]Message message)
         {
-            if (message.Type == "Message")
+            if (message.Type == "Message"
+                && message.From?.IsBot == false)
             {
-                return PostCore(message, message.Text);
+                var code = message.Text;
+                code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
+                code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
+
+                return PostCore(message, code);
             }
             else
             {
@@ -60,15 +65,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
         }
 
-
         internal async Task<Message> PostCore(Message message, string code)
         {
-            code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
-            code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
-
             if (_Mutex.WaitOne(15000))
             {
-                _Mutex.Reset();
                 try
                 {
                     foreach (var cmd in _Commands)
