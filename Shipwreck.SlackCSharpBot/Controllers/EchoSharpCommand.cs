@@ -14,7 +14,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
     internal sealed class EchoSharpCommand : NamedMessageCommand
     {
         private static Regex LIST = new Regex(@"^\s*list", RegexOptions.IgnoreCase);
-        private static Regex UPDATE = new Regex(@"^\s*(?<s>add|upd(ate)?)\s+(?<n>\S+)\s+(?<p>\S+)\s+(?<c>.+)$", RegexOptions.IgnoreCase);
+        private static Regex UPDATE = new Regex(@"^\s*(?<s>add|create|upd(ate)?)\s+(?<n>\S+)\s+(?<p>\S+)\s+(?<c>.+)$", RegexOptions.IgnoreCase);
         private static Regex SHOW = new Regex(@"^\s*show\s+(?<n>\S+)\s*$", RegexOptions.IgnoreCase);
         private static Regex DELETE = new Regex(@"^\s*del(elte)?\s+(?<n>\S+)\s*$", RegexOptions.IgnoreCase);
 
@@ -76,7 +76,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             {
                 return message.CreateReplyMessage($"{StringBuilderHelper.ERROR}正規表現が無効です。");
             }
-            var willUpdate = !m.Groups["s"].Value.Equals("add", StringComparison.InvariantCultureIgnoreCase);
+            var willUpdate = m.Groups["s"].Value.StartsWith("u", StringComparison.InvariantCultureIgnoreCase);
             var didUpdated = false;
             try
             {
@@ -201,7 +201,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             sb.Append("* list").NewLine();
             sb.Append("* add name pattern commandReplacement").NewLine();
             sb.Append("* upd name pattern commandReplacement").NewLine();
-            sb.Append("* show name");
+            sb.Append("* show name").NewLine();
             sb.Append("* del name");
 
             return message.CreateReplyMessage(sb.ToString());
