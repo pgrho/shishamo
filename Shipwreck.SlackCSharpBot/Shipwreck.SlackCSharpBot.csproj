@@ -155,6 +155,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
+    <Compile Include="Controllers\CustomBotAuthentication.cs" />
     <Compile Include="Controllers\EchoSharpCommand.cs" />
     <Compile Include="Controllers\EchoSharpUserCommand.cs" />
     <Compile Include="Controllers\FishPixCommand.cs" />

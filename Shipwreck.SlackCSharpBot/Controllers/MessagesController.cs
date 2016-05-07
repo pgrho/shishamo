@@ -12,7 +12,7 @@ using System.Web.Http;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
-    [BotAuthentication]
+    [CustomBotAuthentication]
     public class MessagesController : ApiController
     {
         private static readonly Regex UserPattern = new Regex(@"<(?<type>[#@])(?<id>[^>|]+)(\|(?<disp>[^>]+))?>");
