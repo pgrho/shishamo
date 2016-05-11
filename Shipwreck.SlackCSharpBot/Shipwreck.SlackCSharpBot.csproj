@@ -161,11 +161,21 @@
     <Compile Include="Controllers\FishPixCommand.cs" />
     <Compile Include="Controllers\HelpCommand.cs" />
     <Compile Include="Controllers\NamedMessageCommand.cs" />
+    <Compile Include="Models.Migrations\201604301612126_InitialCreate.cs" />
+    <Compile Include="Models.Migrations\201604301612126_InitialCreate.Designer.cs">
+      <DependentUpon>201604301612126_InitialCreate.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models.Migrations\201605101254582_AddSachikoOtsukai.cs" />
+    <Compile Include="Models.Migrations\201605101254582_AddSachikoOtsukai.Designer.cs">
+      <DependentUpon>201605101254582_AddSachikoOtsukai.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models.Migrations\Configuration.cs" />
     <Compile Include="Models\IdolImage.cs" />
     <Compile Include="Models\IdolImageResult.cs" />
     <Compile Include="Controllers\IdolMasterCommand.cs" />
     <Compile Include="Models\SachikoAdmin.cs" />
     <Compile Include="Controllers\SachikoCommand.cs" />
+    <Compile Include="Models\SachikoOtsukai.cs" />
     <Compile Include="Models\SachikoRecord.cs" />
     <Compile Include="Controllers\Scripting\CSharpDirective.cs" />
     <Compile Include="Controllers\Scripting\CSharpExecutionContext.cs" />
@@ -184,6 +194,11 @@
     <Compile Include="Models\EchoSharpEntry.cs" />
     <Compile Include="Models\ShishamoDbContext.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Settings.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTimeSharedInput>True</DesignTimeSharedInput>
+      <DependentUpon>Settings.settings</DependentUpon>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="packages.config" />
@@ -191,6 +206,10 @@
     <Content Include="apiapp.json" />
     <None Include="Properties\PublishProfiles\azure.pubxml" />
     <None Include="Properties\PublishProfiles\Shipwreck.pubxml" />
+    <None Include="Properties\Settings.settings">
+      <Generator>SettingsSingleFileGenerator</Generator>
+      <LastGenOutput>Settings.Designer.cs</LastGenOutput>
+    </None>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
     </None>
@@ -204,6 +223,14 @@
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Models.Migrations\201604301612126_InitialCreate.resx">
+      <DependentUpon>201604301612126_InitialCreate.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Models.Migrations\201605101254582_AddSachikoOtsukai.resx">
+      <DependentUpon>201605101254582_AddSachikoOtsukai.cs</DependentUpon>
+    </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>
     <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
