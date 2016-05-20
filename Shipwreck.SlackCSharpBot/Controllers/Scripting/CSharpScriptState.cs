@@ -71,6 +71,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 _Assemblies.AddRange(new[]
                 {
                     typeof(object).Assembly,
+                    typeof(Uri).Assembly,
                     typeof(Enumerable).Assembly,
                     typeof(XmlDocument).Assembly,
                     typeof(XDocument).Assembly,
