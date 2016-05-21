@@ -17,8 +17,6 @@ namespace Shipwreck.SlackCSharpBot
 
         protected void Application_BeginRequest(object sender, EventArgs e)
         {
-            var f = Path.GetTempFileName();
-            HttpContext.Current.Request.SaveAs(f, true);
         }
     }
 }
