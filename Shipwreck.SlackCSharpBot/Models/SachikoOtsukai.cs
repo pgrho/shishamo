@@ -21,5 +21,7 @@ namespace Shipwreck.SlackCSharpBot.Models
         public int Price { get; set; }
 
         public string Title { get; set; }
+
+        public DateTime? LastUpdatedAt { get; set; }
     }
 }

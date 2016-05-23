@@ -169,6 +169,10 @@
     <Compile Include="Models.Migrations\201605101254582_AddSachikoOtsukai.Designer.cs">
       <DependentUpon>201605101254582_AddSachikoOtsukai.cs</DependentUpon>
     </Compile>
+    <Compile Include="Models.Migrations\201605210126476_AddLastUpdatedAt.cs" />
+    <Compile Include="Models.Migrations\201605210126476_AddLastUpdatedAt.Designer.cs">
+      <DependentUpon>201605210126476_AddLastUpdatedAt.cs</DependentUpon>
+    </Compile>
     <Compile Include="Models.Migrations\Configuration.cs" />
     <Compile Include="Models\IdolImage.cs" />
     <Compile Include="Models\IdolImageResult.cs" />
@@ -230,6 +234,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Models.Migrations\201605101254582_AddSachikoOtsukai.resx">
       <DependentUpon>201605101254582_AddSachikoOtsukai.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Models.Migrations\201605210126476_AddLastUpdatedAt.resx">
+      <DependentUpon>201605210126476_AddLastUpdatedAt.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

@@ -348,15 +348,19 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                     e.Quantity += q;
                 }
 
-                var tp = await GetAmazonItemAsync(asin);
-
-                if (tp == null)
+                if (!(e.LastUpdatedAt >= DateTime.Now.AddDays(-1)))
                 {
-                    return await CreateErrorMessageAsync(message, "該当する商品が存在しません。");
-                }
+                    var tp = await GetAmazonItemAsync(asin);
 
-                e.Title = tp.Title ?? e.Title;
-                e.Price = tp.Price > 0 ? tp.Price : e.Price;
+                    if (tp == null)
+                    {
+                        return await CreateErrorMessageAsync(message, "該当する商品が存在しません。");
+                    }
+
+                    e.Title = tp.Title ?? e.Title;
+                    e.Price = tp.Price > 0 ? tp.Price : e.Price;
+                    e.LastUpdatedAt = DateTime.Now;
+                }
 
                 await db.SaveChangesAsync();
 
@@ -412,7 +416,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
         }
 
-        private static readonly Regex KAU = new Regex(@"^\s*(kau)(\s+|$)", RegexOptions.IgnoreCase);
+        private static readonly Regex KAU = new Regex(@"^\s*(kau)(?<nolink>\s+-(nolink|nl))?(\s+|$)", RegexOptions.IgnoreCase);
 
         private async Task<Message> HandleKauAsync(Message message, string text)
         {
@@ -423,6 +427,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 return null;
             }
 
+            var nolink = m.Groups["nolink"].Length > 0;
+
             using (var db = new ShishamoDbContext())
             {
                 var l = await db.SachikoOtsukai.ToListAsync();
@@ -430,21 +436,37 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 if (l.Any())
                 {
                     var sb = new StringBuilder();
-
+                    var total = 0;
                     foreach (var item in l)
                     {
-                        var p = await GetAmazonItemAsync(item.Asin);
-
-                        if (p != null)
+                        if (!(item.LastUpdatedAt >= DateTime.Now.AddDays(-1)))
                         {
-                            item.Title = p.Title;
-                            item.Price = p.Price;
+                            var p = await GetAmazonItemAsync(item.Asin);
+
+                            if (p != null)
+                            {
+                                item.Title = p.Title;
+                                item.Price = p.Price;
+                                item.LastUpdatedAt = DateTime.Now;
+                            }
                         }
 
-                        sb.Append(GetAmazonUrl(item.Asin)).NewLine();
+                        total += item.Price * item.Quantity;
+
+                        if (!nolink)
+                        {
+                            sb.Append(GetAmazonUrl(item.Asin)).NewLine();
+                        }
+
                         sb.Append($"{item.Asin} {item.Title} \\{item.Price: #,0}×{item.Quantity}個").NewLine();
-                        sb.Append($"`!sachiko push -asin {item.Asin} -{item.Price * item.Quantity} {item.Title}`").NewLine();
+
+                        sb.Append($":point_right: `!sachiko push -asin {item.Asin} -{item.Price * item.Quantity} {item.Title}`").NewLine();
+
+                        sb.NewLine();
                     }
+
+                    sb.Append("合計金額は \\").Append(total.ToString("#,0")).Append(" です。").AppendLine();
+                    sb.AppendLine();
 
                     await db.SaveChangesAsync();
 
@@ -476,6 +498,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
 
             var tv = t.Split('：', ':').FirstOrDefault(_ => !"Amazon.co.jp".Equals(_, StringComparison.InvariantCultureIgnoreCase))?.Trim();
+
+            tv = Regex.Replace(tv, "$#([0-9a-z]{1,5});", m => ((char)short.Parse(m.Groups[1].Value)).ToString());
+            tv = Regex.Replace(tv, "$#x([0-9a-z]{1,4});", m => ((char)short.Parse(m.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)).ToString());
 
             var pe = hd.GetElementbyId("priceblock_ourprice")
                     ?? hd.GetElementbyId("priceblock_saleprice")
