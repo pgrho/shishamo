@@ -497,7 +497,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 return null;
             }
 
-            var tv = t.Split('：', ':').FirstOrDefault(_ => !"Amazon.co.jp".Equals(_, StringComparison.InvariantCultureIgnoreCase))?.Trim();
+            var tv = t.Split('：', ':')
+                        .Select(_ => _.Trim())
+                        .FirstOrDefault(_ => !"Amazon.co.jp".Equals(_, StringComparison.InvariantCultureIgnoreCase));
 
             tv = Regex.Replace(tv, "$#([0-9a-z]{1,5});", m => ((char)short.Parse(m.Groups[1].Value)).ToString());
             tv = Regex.Replace(tv, "$#x([0-9a-z]{1,4});", m => ((char)short.Parse(m.Groups[1].Value, System.Globalization.NumberStyles.HexNumber)).ToString());
