@@ -23,7 +23,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
             var sb = new StringBuilder();
             var cmds = MessagesController.GetCommands();
-            MessagesController.ReleaseMutex();
 
             sb.Append("shishamo C# bot:").NewLine();
             foreach (var c in cmds.OfType<NamedMessageCommand>())
