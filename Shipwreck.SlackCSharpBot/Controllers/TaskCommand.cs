@@ -13,7 +13,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 {
     internal sealed class TaskCommand : NamedMessageCommand
     {
-        private static readonly Regex HELP = new Regex(@"^\s*admin(\s+|$)", RegexOptions.IgnoreCase);
+        private static readonly Regex HELP = new Regex(@"^\s*help(\s+|$)", RegexOptions.IgnoreCase);
         private static readonly Regex ADD = new Regex(@"^\s*(add|create)\s+((?<u>\S+)\s)?(?<d>.*)$", RegexOptions.IgnoreCase);
         private static readonly Regex UPDATE = new Regex(@"^\s*update\s+(?<t>[0-2]?[0-9]{1,8})\s+(?<d>.*)$", RegexOptions.IgnoreCase);
         private static readonly Regex LIST = new Regex(@"^\s*list(\s+(?<u>\S*))?\s*$", RegexOptions.IgnoreCase);
@@ -46,11 +46,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             var sb = new StringBuilder();
             sb.Append("タスク管理コマンド").NewLine();
             sb.NewLine();
-            sb.Append("add [user] description").NewLine();
-            sb.Append("update [task] description").NewLine();
-            sb.Append("list [user]").NewLine();
-            sb.Append("done task").NewLine();
-            sb.Append("delete task").NewLine();
+            sb.Append(" * add [user] description").NewLine();
+            sb.Append(" * update task description").NewLine();
+            sb.Append(" * list [user]").NewLine();
+            sb.Append(" * done task").NewLine();
+            sb.Append(" * delete task").NewLine();
 
             return message.CreateReplyMessage(sb.ToString());
         }
