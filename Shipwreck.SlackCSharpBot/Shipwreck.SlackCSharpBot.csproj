@@ -161,6 +161,7 @@
     <Compile Include="Controllers\FishPixCommand.cs" />
     <Compile Include="Controllers\HelpCommand.cs" />
     <Compile Include="Controllers\NamedMessageCommand.cs" />
+    <Compile Include="Controllers\TaskCommand.cs" />
     <Compile Include="Models.Migrations\201604301612126_InitialCreate.cs" />
     <Compile Include="Models.Migrations\201604301612126_InitialCreate.Designer.cs">
       <DependentUpon>201604301612126_InitialCreate.cs</DependentUpon>
@@ -172,6 +173,10 @@
     <Compile Include="Models.Migrations\201605210126476_AddLastUpdatedAt.cs" />
     <Compile Include="Models.Migrations\201605210126476_AddLastUpdatedAt.Designer.cs">
       <DependentUpon>201605210126476_AddLastUpdatedAt.cs</DependentUpon>
+    </Compile>
+    <Compile Include="Models.Migrations\201605271229156_AddTasks.cs" />
+    <Compile Include="Models.Migrations\201605271229156_AddTasks.Designer.cs">
+      <DependentUpon>201605271229156_AddTasks.cs</DependentUpon>
     </Compile>
     <Compile Include="Models.Migrations\Configuration.cs" />
     <Compile Include="Models\IdolImage.cs" />
@@ -197,6 +202,7 @@
     </Compile>
     <Compile Include="Models\EchoSharpEntry.cs" />
     <Compile Include="Models\ShishamoDbContext.cs" />
+    <Compile Include="Models\TaskRecord.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Properties\Settings.Designer.cs">
       <AutoGen>True</AutoGen>
@@ -216,9 +222,11 @@
     </None>
     <None Include="Web.Debug.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </None>
     <None Include="Web.Release.config">
       <DependentUpon>Web.config</DependentUpon>
+      <SubType>Designer</SubType>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -237,6 +245,9 @@
     </EmbeddedResource>
     <EmbeddedResource Include="Models.Migrations\201605210126476_AddLastUpdatedAt.resx">
       <DependentUpon>201605210126476_AddLastUpdatedAt.cs</DependentUpon>
+    </EmbeddedResource>
+    <EmbeddedResource Include="Models.Migrations\201605271229156_AddTasks.resx">
+      <DependentUpon>201605271229156_AddTasks.cs</DependentUpon>
     </EmbeddedResource>
   </ItemGroup>
   <PropertyGroup>

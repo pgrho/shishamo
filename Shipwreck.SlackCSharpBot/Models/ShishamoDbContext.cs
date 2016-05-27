@@ -24,5 +24,7 @@ namespace Shipwreck.SlackCSharpBot.Models
         public DbSet<SachikoRecord> SachikoRecords { get; set; }
 
         public DbSet<SachikoOtsukai> SachikoOtsukai { get; set; }
+
+        public DbSet<TaskRecord> Tasks { get; set; }
     }
 }

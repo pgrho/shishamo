@@ -35,6 +35,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 new FishPixCommand(),
                 new SachikoCommand(),
                 new IdolMasterCommand(),
+                new TaskCommand(),
                 new EchoSharpUserCommand()
             };
         }
