@@ -1,22 +1,35 @@
-using System;
-using System.Linq;
-using System.Collections.Generic;
 using Microsoft.Bot.Connector;
 using Microsoft.Bot.Connector.Utilities;
 using Shipwreck.SlackCSharpBot.Controllers.Scripting;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
-using System.Text;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
     internal sealed class HelpCommand : RegexMessageCommand
     {
+        private static readonly Regex REPLY = new Regex(@"shishamo($|\s|:)", RegexOptions.IgnoreCase);
+        private static readonly Regex HELP = new Regex(@"help($|\s)", RegexOptions.IgnoreCase);
+
         public HelpCommand()
             : base(@"^\s*(@?shishamo:?\s+|!sh?is[hy]amo-)help($|\s|;)")
         {
+        }
+
+        public override Task<Message> TryExecuteAsync(Message message, string text)
+        {
+            if (REPLY.IsMatch(message.To?.Name ?? string.Empty)
+                && HELP.IsMatch(text ?? string.Empty))
+            {
+                return ExecuteAsyncCore(message, text);
+            }
+            return base.TryExecuteAsync(message, text);
         }
 
         protected override Task<Message> ExecuteAsyncCore(Message message, string text)
