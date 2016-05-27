@@ -25,8 +25,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         static MessagesController()
         {
-            _Mutex = new EventWaitHandle(true, EventResetMode.AutoReset);
-
             _Commands = new List<MessageCommand>()
             {
                 new HelpCommand(),
@@ -39,11 +37,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 new EchoSharpUserCommand()
             };
         }
-
-        private static readonly EventWaitHandle _Mutex;
-
-        internal static void ReleaseMutex()
-            => _Mutex.Set();
 
         /// <summary>
         /// POST: api/Messages
@@ -66,33 +59,19 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
         }
 
-        internal async Task<Message> PostCore(Message message, string code)
+        internal Task<Message> PostCore(Message message, string code)
         {
-            if (_Mutex.WaitOne(15000))
+            foreach (var cmd in _Commands)
             {
-                try
-                {
-                    foreach (var cmd in _Commands)
-                    {
-                        var t = cmd.TryExecuteAsync(message, code);
+                var t = cmd.TryExecuteAsync(message, code);
 
-                        if (t != null)
-                        {
-                            return await t;
-                        }
-                    }
-                }
-                finally
+                if (t != null)
                 {
-                    _Mutex.Set();
+                    return t;
                 }
             }
-            else
-            {
-                message.CreateReplyMessage(":exclamation:15秒以内に直前のコマンドが終了しませんでした。");
-            }
 
-            return null;
+            return Task.FromResult<Message>(null);
         }
 
         private Message HandleSystemMessage(Message message)

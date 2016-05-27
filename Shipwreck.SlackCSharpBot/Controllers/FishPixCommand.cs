@@ -50,9 +50,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
         {
-            // ロックは不要なのでリリースします。
-            MessagesController.ReleaseMutex();
-
             var n = (text ?? string.Empty).Trim();
             var f = (await GetImage(n, MatchOperator.Equal))
                     ?? (await GetImage(n, MatchOperator.EndsWith))

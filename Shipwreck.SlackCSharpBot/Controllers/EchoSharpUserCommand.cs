@@ -45,8 +45,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 return new { e, m = (Match)null };
             }).Where(_ => _.m != null).ToList();
 
-            MessagesController.ReleaseMutex();
-
             if (list.Any())
             {
                 var e = list.Count == 1 ? list[0] : list[new Random().Next(list.Count)];
