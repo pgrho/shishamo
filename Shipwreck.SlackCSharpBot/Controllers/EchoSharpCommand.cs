@@ -180,6 +180,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 rc += l.Count;
                 if (l.Any())
                 {
+                    db.EchoSharpEntries.RemoveRange(l);
                     await db.SaveChangesAsync();
                 }
             }
