@@ -24,7 +24,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         public override Task<Message> TryExecuteAsync(Message message, string text)
         {
-            if (REPLY.IsMatch(message.To?.Name ?? string.Empty)
+            if (message.Mentions.Any(_ => REPLY.IsMatch(_.Mentioned.Name))
                 && HELP.IsMatch(text ?? string.Empty))
             {
                 return ExecuteAsyncCore(message, text);
