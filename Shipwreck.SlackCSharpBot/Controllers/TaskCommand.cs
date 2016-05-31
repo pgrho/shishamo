@@ -64,14 +64,30 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
 
             var ug = m.Groups["u"];
-            var uid = ug.Success ? ug.Value : message.From.Name;
+
+            string uid;
+            var d = m.Groups["d"].Value;
+            if (ug.Success)
+            {
+                uid = ug.Value;
+
+                if (message.Participants?.Any(_ => _.Name.Equals(uid, StringComparison.InvariantCultureIgnoreCase)) == false)
+                {
+                    uid = message.From.Name;
+                    d = text.Substring(ug.Index);
+                }
+            }
+            else
+            {
+                uid = message.From.Name;
+            }
 
             using (var db = new ShishamoDbContext())
             {
                 var t = new TaskRecord()
                 {
                     UserName = uid,
-                    Description = m.Groups["d"].Value,
+                    Description = d,
                     CreatedAt = DateTime.Now
                 };
                 db.Tasks.Add(t);
