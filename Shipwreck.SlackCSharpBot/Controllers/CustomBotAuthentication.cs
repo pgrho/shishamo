@@ -1,11 +1,11 @@
-﻿using Microsoft.Bot.Connector.Utilities;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Web;
 using System.Threading.Tasks;
 using System.Web.Http.Controllers;
 using System.Configuration;
+using Microsoft.Bot.Connector;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {

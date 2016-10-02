@@ -1,5 +1,4 @@
 using Microsoft.Bot.Connector;
-using Microsoft.Bot.Connector.Utilities;
 using Shipwreck.SlackCSharpBot.Controllers.Scripting;
 using System;
 using System.Collections.Generic;
