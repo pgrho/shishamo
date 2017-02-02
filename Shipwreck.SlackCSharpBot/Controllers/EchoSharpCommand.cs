@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -23,16 +24,16 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
-            return await HandleListAsync(message, text)
-                ?? await HandleAddAsync(message, text)
-                ?? await HandleShowAsync(message, text)
-                ?? await HandleDeleteAsync(message, text)
-                ?? HandleHelp(message, text);
+            return await HandleListAsync(activity, text)
+                ?? await HandleAddAsync(activity, text)
+                ?? await HandleShowAsync(activity, text)
+                ?? await HandleDeleteAsync(activity, text)
+                ?? await HandleHelpAsync(activity, text);
         }
 
-        private async Task<Message> HandleListAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleListAsync(Activity activity, string text)
         {
             var m = LIST.Match(text);
             if (!m.Success)
@@ -50,12 +51,12 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (mc.Entries.Any())
             {
-                return message.CreateReplyMessage(string.Join(" ", mc.Entries.Select(_ => $"`{_.Name}`")));
+                return await activity.ReplyToAsync(string.Join(" ", mc.Entries.Select(_ => $"`{_.Name}`")));
             }
-            return message.CreateReplyMessage("コマンドがありません。");
+            return await activity.ReplyToAsync("コマンドがありません。");
         }
 
-        private async Task<Message> HandleAddAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleAddAsync(Activity activity, string text)
         {
             var m = UPDATE.Match(text);
             if (!m.Success)
@@ -74,7 +75,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (e == null)
             {
-                return message.CreateReplyMessage($"{StringBuilderHelper.ERROR}正規表現が無効です。");
+                return await activity.ReplyToAsync($"{StringBuilderHelper.ERROR}正規表現が無効です。");
             }
             var willUpdate = m.Groups["s"].Value.StartsWith("u", StringComparison.InvariantCultureIgnoreCase);
             var didUpdated = false;
@@ -98,7 +99,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
             catch
             {
-                return message.CreateReplyMessage($"{StringBuilderHelper.ERROR}コマンドの追加に失敗しました。");
+                return await activity.ReplyToAsync($"{StringBuilderHelper.ERROR}コマンドの追加に失敗しました。");
             }
 
             await mc.InitEntries();
@@ -119,10 +120,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             sb.Success().Append("コマンド `").Append(e.Name).Append("` を").Append(didUpdated ? "更新" : "作成").Append("しました");
 
-            return message.CreateReplyMessage(sb.ToString());
+            return await activity.ReplyToAsync(sb.ToString());
         }
 
-        private async Task<Message> HandleShowAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleShowAsync(Activity activity, string text)
         {
             var m = SHOW.Match(text);
             if (!m.Success)
@@ -145,7 +146,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (e == null)
             {
-                return message.CreateReplyMessage($"{StringBuilderHelper.WARNING}指定された名前のコマンドが存在しません。");
+                return await activity.ReplyToAsync($"{StringBuilderHelper.WARNING}指定された名前のコマンドが存在しません。");
             }
 
             var sb = new StringBuilder();
@@ -154,10 +155,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             sb.Append("Pattern: ").Append(e.Pattern).NewLine();
             sb.Append("Command: ").Append(e.Command);
 
-            return message.CreateReplyMessage(sb.ToString());
+            return await activity.ReplyToAsync(sb.ToString());
         }
 
-        private async Task<Message> HandleDeleteAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleDeleteAsync(Activity activity, string text)
         {
             var m = DELETE.Match(text);
             if (!m.Success)
@@ -191,12 +192,12 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (rc == 0)
             {
-                return message.CreateReplyMessage($"{StringBuilderHelper.WARNING}指定された名前のコマンドが存在しません。");
+                return await activity.ReplyToAsync($"{StringBuilderHelper.WARNING}指定された名前のコマンドが存在しません。");
             }
-            return message.CreateReplyMessage($"{StringBuilderHelper.SUCCESS}{(rc + 1) / 2}個のコマンドを削除しました。");
+            return await activity.ReplyToAsync($"{StringBuilderHelper.SUCCESS}{(rc + 1) / 2}個のコマンドを削除しました。");
         }
 
-        private Message HandleHelp(Message message, string text)
+        private Task<HttpResponseMessage> HandleHelpAsync(Activity activity, string text)
         {
             var sb = new StringBuilder();
             sb.Append("* list").NewLine();
@@ -205,7 +206,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             sb.Append("* show name").NewLine();
             sb.Append("* del name");
 
-            return message.CreateReplyMessage(sb.ToString());
+            return activity.ReplyToAsync(sb.ToString());
         }
 
         private static EchoSharpEntry CreateEntry(Match m)

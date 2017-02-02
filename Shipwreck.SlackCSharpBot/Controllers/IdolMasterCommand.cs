@@ -11,7 +11,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
@@ -22,7 +21,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
             var tr = text.Trim();
             var sp = tr.Split(new[] { ' ' }, 3);
@@ -52,11 +51,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                         sb.Append(img.ImageUrl).NewLine();
                     }
 
-                    return message.CreateReplyMessage(sb.ToString());
+                    return await activity.ReplyToAsync(sb.ToString());
                 }
                 else
                 {
-                    return message.CreateReplyMessage("該当する画像が見つかりませんでした。");
+                    return await activity.ReplyToAsync("該当する画像が見つかりませんでした。");
                 }
             }
             else
@@ -71,10 +70,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 if (img != null)
                 {
-                    return message.CreateReplyMessage($"{img.ImageUrl}#{DateTime.Now.Ticks}");
+                    return await activity.ReplyToAsync($"{img.ImageUrl}#{DateTime.Now.Ticks}");
                 }
 
-                return message.CreateReplyMessage("該当する画像が見つかりませんでした。");
+                return await activity.ReplyToAsync("該当する画像が見つかりませんでした。");
             }
         }
 
@@ -112,13 +111,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
             var u = $"http://shipwreck.jp/imascg/Image/Search?headline={headline}&headlineOperator={headlineOperator}&kana={kana}&kanaOperator={kanaOperator}&rarity={rarity}&isPlus={isPlus}&count=32";
 
-            using (var hc = new HttpClient())
-            {
-                var res = await hc.GetAsync(u);
-                var ir = await res.Content.ReadAsAsync<IdolImageResult>();
+            var res = await MessagesController.HttpClient.GetAsync(u);
+            var ir = await res.Content.ReadAsAsync<IdolImageResult>();
 
-                return ir.Items;
-            }
+            return ir.Items;
         }
     }
 }

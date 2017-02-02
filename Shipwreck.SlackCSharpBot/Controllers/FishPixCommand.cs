@@ -6,10 +6,9 @@ using System.Web;
 using Microsoft.Bot.Connector;
 using System.Net;
 using System.Runtime.Serialization;
-using System.Runtime.Serialization.Json;
 using System.IO;
-using System.Web.Script.Serialization;
 using System.Text;
+using System.Net.Http;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
@@ -48,7 +47,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
             var n = (text ?? string.Empty).Trim();
             var f = (await GetImage(n, MatchOperator.Equal))
@@ -57,31 +56,25 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (f == null)
             {
-                return message.CreateReplyMessage("該当する:fish:が見つかりませんでした。");
+                return await activity.ReplyToAsync("該当する:fish:が見つかりませんでした。");
             }
-            return message.CreateReplyMessage($":fish:和名: {f.JapaneseName}\n\n:fish:学名: {f.LatinName}\n\n{f.ImageUrl}#{DateTime.Now.Ticks}");
+            return await activity.ReplyToAsync($":fish:和名: {f.JapaneseName}\n\n:fish:学名: {f.LatinName}\n\n{f.ImageUrl}#{DateTime.Now.Ticks}");
         }
 
         private async static Task<FishImage> GetImage(string name, MatchOperator @operator)
         {
             var u = Uri.EscapeUriString($"http://shipwreck.jp/fishpix?name={name}&nameOperator={@operator}");
 
-            var req = (HttpWebRequest)WebRequest.Create(u);
+            var res = await MessagesController.HttpClient.GetAsync(u);
 
-            using (var res = await req.GetResponseAsync())
-            using (var s = res.GetResponseStream())
-            using (var sr = new StreamReader(s, Encoding.UTF8))
+            var r = await res.Content.ReadAsAsync<FishImageResult>();
+
+            if (r.Items.Any())
             {
-                var t = await sr.ReadToEndAsync();
-                var r = new JavaScriptSerializer().Deserialize<FishImageResult>(t);
-
-                if (r.Items.Any())
-                {
-                    var rd = new Random();
-                    return r.Items.OrderBy(_ => rd.Next()).FirstOrDefault();
-                }
-                return null;
+                var rd = new Random();
+                return r.Items.OrderBy(_ => rd.Next()).FirstOrDefault();
             }
+            return null;
         }
     }
 }

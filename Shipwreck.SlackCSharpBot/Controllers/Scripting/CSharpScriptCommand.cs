@@ -6,6 +6,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
@@ -27,7 +28,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             _State = new CSharpScriptState();
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
             var sb = new StringBuilder();
             var r = await new CSharpExecutionContext(_State, text).ExecuteAsync();
@@ -138,9 +139,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 }
             }
 
-            var m = message.CreateReplyMessage(sb.ToString());
-
-            return m;
+            return await activity.ReplyToAsync(sb.ToString());
         }
     }
 }

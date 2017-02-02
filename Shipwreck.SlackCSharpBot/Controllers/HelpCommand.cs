@@ -3,6 +3,8 @@ using Shipwreck.SlackCSharpBot.Controllers.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
@@ -21,17 +23,17 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        public override Task<Message> TryExecuteAsync(Message message, string text)
+        public override Task<HttpResponseMessage> TryExecuteAsync(Activity activity, string text)
         {
-            if (message.Mentions.Any(_ => REPLY.IsMatch(_.Mentioned.Name))
+            if (activity.GetMentions().Any(_ => REPLY.IsMatch(_.Mentioned.Name))
                 && HELP.IsMatch(text ?? string.Empty))
             {
-                return ExecuteAsyncCore(message, text);
+                return ExecuteAsyncCore(activity, text);
             }
-            return base.TryExecuteAsync(message, text);
+            return base.TryExecuteAsync(activity, text);
         }
 
-        protected override Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
             var sb = new StringBuilder();
             var cmds = MessagesController.GetCommands();
@@ -42,7 +44,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 sb.Append('!').Append(c.Name).Append(": ").Append(c.Help).NewLine();
             }
 
-            return Task.FromResult(message.CreateReplyMessage(sb.ToString()));
+            return activity.ReplyToAsync(sb.ToString());
         }
     }
+
 }

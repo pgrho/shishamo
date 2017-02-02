@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -24,23 +25,23 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
-            return HandleHelp(message, text)
-                    ?? await HandleAddAsync(message, text)
-                    ?? await HandleListAsync(message, text)
-                    ?? await HandleDeleteAsync(message, text)
-                    ?? await HandleUpdateAsync(message, text)
-                    ?? message.CreateReplyMessage("コマンドが無効です。");
+            return await HandleHelpAsync(activity, text)
+                    ?? await HandleAddAsync(activity, text)
+                    ?? await HandleListAsync(activity, text)
+                    ?? await HandleDeleteAsync(activity, text)
+                    ?? await HandleUpdateAsync(activity, text)
+                    ?? await activity.ReplyToAsync("コマンドが無効です。");
         }
 
-        private Message HandleHelp(Message message, string text)
+        private Task<HttpResponseMessage> HandleHelpAsync(Activity activity, string text)
         {
             var m = HELP.Match(text);
 
             if (!m.Success)
             {
-                return null;
+                return Task.FromResult<HttpResponseMessage>(null);
             }
 
             var sb = new StringBuilder();
@@ -52,10 +53,10 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             sb.Append(" * done task").NewLine();
             sb.Append(" * delete task").NewLine();
 
-            return message.CreateReplyMessage(sb.ToString());
+            return activity.ReplyToAsync(sb.ToString());
         }
 
-        private async Task<Message> HandleAddAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleAddAsync(Activity activity, string text)
         {
             var m = ADD.Match(text);
             if (!m.Success)
@@ -71,15 +72,15 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             {
                 uid = ug.Value;
 
-                if (message.Participants?.Any(_ => _.Name.Equals(uid, StringComparison.InvariantCultureIgnoreCase)) == false)
+                if (activity.GetMentions()?.Any(_ => _.Mentioned.Name.Equals(uid, StringComparison.InvariantCultureIgnoreCase)) == false)
                 {
-                    uid = message.From.Name;
+                    uid = activity.From.Name;
                     d = text.Substring(ug.Index);
                 }
             }
             else
             {
-                uid = message.From.Name;
+                uid = activity.From.Name;
             }
 
             using (var db = new ShishamoDbContext())
@@ -94,11 +95,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 await db.SaveChangesAsync();
 
-                return message.CreateReplyMessage(StringBuilderHelper.SUCCESS + $"ユーザー'{uid}'のタスク'{t.Id}'を追加しました。");
+                return await activity.ReplyToAsync(StringBuilderHelper.SUCCESS + $"ユーザー'{uid}'のタスク'{t.Id}'を追加しました。");
             }
         }
 
-        private async Task<Message> HandleUpdateAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleUpdateAsync(Activity activity, string text)
         {
             var m = UPDATE.Match(text);
             if (!m.Success)
@@ -114,17 +115,17 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 if (e == null)
                 {
-                    return message.CreateReplyMessage(StringBuilderHelper.WARNING + "該当するタスクが存在しません。");
+                    return await activity.ReplyToAsync(StringBuilderHelper.WARNING + "該当するタスクが存在しません。");
                 }
 
                 e.Description = m.Groups["d"].Value;
                 await db.SaveChangesAsync();
 
-                return message.CreateReplyMessage(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を更新しました。");
+                return await activity.ReplyToAsync(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を更新しました。");
             }
         }
 
-        private async Task<Message> HandleListAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleListAsync(Activity activity, string text)
         {
             var m = LIST.Match(text);
             if (!m.Success)
@@ -132,7 +133,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 return null;
             }
             var ug = m.Groups["u"];
-            var uid = ug.Success ? ug.Value : message.From.Name;
+            var uid = ug.Success ? ug.Value : activity.From.Name;
 
             using (var db = new ShishamoDbContext())
             {
@@ -144,16 +145,16 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                     {
                         sb.Append(" * ").Append(t.Id).Append(' ').Append(t.Description).NewLine();
                     }
-                    return message.CreateReplyMessage(sb.ToString());
+                    return await activity.ReplyToAsync(sb.ToString());
                 }
                 else
                 {
-                    return message.CreateReplyMessage(StringBuilderHelper.WARNING + $"ユーザー'{uid}'のタスクはありません。");
+                    return await activity.ReplyToAsync(StringBuilderHelper.WARNING + $"ユーザー'{uid}'のタスクはありません。");
                 }
             }
         }
 
-        private async Task<Message> HandleDeleteAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleDeleteAsync(Activity activity, string text)
         {
             var m = DELETE.Match(text);
             if (!m.Success)
@@ -169,7 +170,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 if (e == null)
                 {
-                    return message.CreateReplyMessage(StringBuilderHelper.WARNING + "該当するタスクが存在しません。");
+                    return await activity.ReplyToAsync(StringBuilderHelper.WARNING + "該当するタスクが存在しません。");
                 }
 
                 if ("DONE".Equals(m.Groups["c"].Value, StringComparison.InvariantCultureIgnoreCase))
@@ -179,7 +180,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                     await db.SaveChangesAsync();
 
-                    return message.CreateReplyMessage(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を完了しました。");
+                    return await activity.ReplyToAsync(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を完了しました。");
                 }
                 else
                 {
@@ -187,7 +188,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                     await db.SaveChangesAsync();
 
-                    return message.CreateReplyMessage(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を削除しました。");
+                    return await activity.ReplyToAsync(StringBuilderHelper.SUCCESS + $"タスク'{tid}'を削除しました。");
                 }
             }
         }

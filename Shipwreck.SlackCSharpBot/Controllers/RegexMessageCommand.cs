@@ -1,4 +1,5 @@
 using Microsoft.Bot.Connector;
+using System.Net.Http;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
@@ -13,7 +14,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             _Pattern = new Regex(pattern, RegexOptions.IgnoreCase);
         }
 
-        public override Task<Message> TryExecuteAsync(Message message, string text)
+        public override Task<HttpResponseMessage> TryExecuteAsync(Activity activity, string text)
         {
             if (text == null)
             {
@@ -23,12 +24,12 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             if (m.Success)
             {
-                return ExecuteAsyncCore(message, text.Substring(m.Length));
+                return ExecuteAsyncCore(activity, text.Substring(m.Length));
             }
 
             return null;
         }
 
-        protected abstract Task<Message> ExecuteAsyncCore(Message message, string text);
+        protected abstract Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text);
     }
 }

@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Web;
-using System.Web.Script.Serialization;
 
 namespace Shipwreck.SlackCSharpBot.Models
 {

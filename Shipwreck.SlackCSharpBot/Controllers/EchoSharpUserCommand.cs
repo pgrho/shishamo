@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Data.Entity;
 using System.Linq;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -27,7 +28,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             }
         }
 
-        public override async Task<Message> TryExecuteAsync(Message message, string text)
+        public override async Task<HttpResponseMessage> TryExecuteAsync(Activity activity, string text)
         {
             await InitEntries();
 
@@ -56,13 +57,13 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 }
                 catch (Exception ex)
                 {
-                    return message.CreateReplyMessage($"{StringBuilderHelper.ERROR}{e.e.Name}の置換でエラーが発生しました。{StringBuilderHelper.NEW_LINE}> {ex.Message}");
+                    return await activity.ReplyToAsync($"{StringBuilderHelper.ERROR}{e.e.Name}の置換でエラーが発生しました。{StringBuilderHelper.NEW_LINE}> {ex.Message}");
                 }
 
-                return await new MessagesController().PostCore(message, c);
+                return await new MessagesController().PostCore(activity, c);
             }
 
-            return null;
+            return new HttpResponseMessage(System.Net.HttpStatusCode.Accepted);
         }
     }
 }

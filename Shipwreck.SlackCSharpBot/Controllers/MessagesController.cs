@@ -3,21 +3,27 @@ using Shipwreck.SlackCSharpBot.Controllers.Scripting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Web.Http;
+using System.Web.Http.Description;
 
 namespace Shipwreck.SlackCSharpBot.Controllers
 {
-    [CustomBotAuthentication]
+    [BotAuthentication]
     public class MessagesController : ApiController
     {
         private static readonly Regex UserPattern = new Regex(@"<(?<type>[#@])(?<id>[^>|]+)(\|(?<disp>[^>]+))?>");
         private static readonly Regex UrlPattern = new Regex(@"<(?<url>(https?|ftp):\/\/[^>|]+)(\|(?<disp>[^>]+))?>");
 
         private static readonly List<MessageCommand> _Commands;
+
+        internal static readonly HttpClient HttpClient = new HttpClient();
+
 
         internal static MessageCommand[] GetCommands()
             => _Commands.ToArray();
@@ -37,32 +43,30 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             };
         }
 
-        /// <summary>
-        /// POST: api/Messages
-        /// Receive a message from a user and reply to it
-        /// </summary>
-        public Task<Message> Post([FromBody]Message message)
+        [ResponseType(typeof(void))]
+        public virtual Task<HttpResponseMessage> Post([FromBody] Activity activity)
         {
-            if (message.Type == "Message"
-                && message.From?.IsBot == false)
+            if (activity.GetActivityType() == ActivityTypes.Message)
             {
-                var code = message.Text;
+                // TODO: activity.From?.IsBot == false
+
+                var code = activity.Text;
                 code = UserPattern.Replace(code, m => m.Groups["type"].Value + (m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["id"].Value));
                 code = UrlPattern.Replace(code, m => m.Groups["disp"].Success ? m.Groups["disp"].Value : m.Groups["url"].Value);
 
-                return PostCore(message, code);
+                return PostCore(activity, code);
             }
             else
             {
-                return Task.FromResult(HandleSystemMessage(message));
+                return Task.FromResult(HandleSystemMessage(activity));
             }
         }
 
-        internal Task<Message> PostCore(Message message, string code)
+        internal Task<HttpResponseMessage> PostCore(Activity activity, string code)
         {
             foreach (var cmd in _Commands)
             {
-                var t = cmd.TryExecuteAsync(message, code);
+                var t = cmd.TryExecuteAsync(activity, code);
 
                 if (t != null)
                 {
@@ -70,39 +74,39 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 }
             }
 
-            return Task.FromResult<Message>(null);
+            return Task.FromResult(new HttpResponseMessage(HttpStatusCode.Accepted));
         }
 
-        private Message HandleSystemMessage(Message message)
+        private HttpResponseMessage HandleSystemMessage(Activity activity)
         {
-            if (message.Type == "Ping")
-            {
-                Message reply = message.CreateReplyMessage();
-                reply.Type = "Ping";
-                return reply;
-            }
-            else if (message.Type == "DeleteUserData")
-            {
-                // Implement user deletion here
-                // If we handle user deletion, return a real message
-            }
-            else if (message.Type == "BotAddedToConversation")
-            {
-            }
-            else if (message.Type == "BotRemovedFromConversation")
-            {
-            }
-            else if (message.Type == "UserAddedToConversation")
-            {
-            }
-            else if (message.Type == "UserRemovedFromConversation")
-            {
-            }
-            else if (message.Type == "EndOfConversation")
-            {
-            }
+            //if (activity.Type == "Ping")
+            //{
+            //    //Message reply = activity.CreateReplyMessage();
+            //    //reply.Type = "Ping";
+            //    //return reply;
+            //}
+            //else if (activity.Type == "DeleteUserData")
+            //{
+            //    // Implement user deletion here
+            //    // If we handle user deletion, return a real activity
+            //}
+            //else if (activity.Type == "BotAddedToConversation")
+            //{
+            //}
+            //else if (activity.Type == "BotRemovedFromConversation")
+            //{
+            //}
+            //else if (activity.Type == "UserAddedToConversation")
+            //{
+            //}
+            //else if (activity.Type == "UserRemovedFromConversation")
+            //{
+            //}
+            //else if (activity.Type == "EndOfConversation")
+            //{
+            //}
 
-            return null;
+            return new HttpResponseMessage(HttpStatusCode.Accepted);
         }
     }
 }

@@ -27,25 +27,25 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         {
         }
 
-        protected override async Task<Message> ExecuteAsyncCore(Message message, string text)
+        protected override async Task<HttpResponseMessage> ExecuteAsyncCore(Activity activity, string text)
         {
-            return await HandleHelpAsync(message, text)
-                    ?? await HandlePushAsync(message, text)
-                    ?? await HandlePopAsync(message, text)
-                    ?? await HandleCurrentAsync(message, text)
-                    ?? await HandleHistoryAsync(message, text)
-                    ?? await HandleOtsukaiAsync(message, text)
-                    ?? await HandleKawanaiAsync(message, text)
-                    ?? await HandleKauAsync(message, text)
-                    ?? await HandleShowAdminAsync(message, text)
-                    ?? await HandleAddAdminAsync(message, text)
-                    ?? await HandleDelAdminAsync(message, text)
-                    ?? await CreateErrorMessageAsync(message, Regex.IsMatch(text, @"^\s*(|かわいい|[ck]awaii)\s*$", RegexOptions.IgnoreCase) ? "" : "コマンドが無効です。");
+            return await HandleHelpAsync(activity, text)
+                    ?? await HandlePushAsync(activity, text)
+                    ?? await HandlePopAsync(activity, text)
+                    ?? await HandleCurrentAsync(activity, text)
+                    ?? await HandleHistoryAsync(activity, text)
+                    ?? await HandleOtsukaiAsync(activity, text)
+                    ?? await HandleKawanaiAsync(activity, text)
+                    ?? await HandleKauAsync(activity, text)
+                    ?? await HandleShowAdminAsync(activity, text)
+                    ?? await HandleAddAdminAsync(activity, text)
+                    ?? await HandleDelAdminAsync(activity, text)
+                    ?? await CreateErrorMessageAsync(activity, Regex.IsMatch(text, @"^\s*(|かわいい|[ck]awaii)\s*$", RegexOptions.IgnoreCase) ? "" : "コマンドが無効です。");
         }
 
         private static readonly Regex HELP = new Regex(@"^\s*([/-]\?|usage|-{0,2}help)", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleHelpAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleHelpAsync(Activity activity, string text)
         {
             if (!HELP.IsMatch(text))
             {
@@ -71,12 +71,12 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             await AppendSachikoAsync(sb);
 
-            return message.CreateReplyMessage(sb.ToString());
+            return await activity.ReplyToAsync(sb.ToString());
         }
 
         private static readonly Regex PUSH = new Regex(@"^\s*push\s+(?<i>-i\s+)?(-d\s+(?<d>[^\s]+)\s+)?(-asin\s+(?<asin>[A-Z0-9]{10})\s+)?(?<m>[-+]?\d+(,\d+)*)(\s+(?<c>.*))?$", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandlePushAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandlePushAsync(Activity activity, string text)
         {
             var m = PUSH.Match(text);
             if (!m.Success)
@@ -87,9 +87,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             var sb = new StringBuilder();
             using (var db = new ShishamoDbContext())
             {
-                if (!await IsAuthorizedAsync(message, db))
+                if (!await IsAuthorizedAsync(activity, db))
                 {
-                    return await CreateErrorMessageAsync(message, "権限がありません。");
+                    return await CreateErrorMessageAsync(activity, "権限がありません。");
                 }
 
                 var d = m.Groups["d"].Value;
@@ -104,11 +104,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 if (!long.TryParse(v, out lv))
                 {
-                    return await CreateErrorMessageAsync(message, "金額が無効です。");
+                    return await CreateErrorMessageAsync(activity, "金額が無効です。");
                 }
                 if (lv == 0)
                 {
-                    return await CreateErrorMessageAsync(message, "金額に0を指定することはできません。");
+                    return await CreateErrorMessageAsync(activity, "金額に0を指定することはできません。");
                 }
 
                 rec.Difference = lv;
@@ -121,7 +121,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 }
                 else if (!DateTime.TryParse(d, out dv))
                 {
-                    return await CreateErrorMessageAsync(message, "日付が無効です。");
+                    return await CreateErrorMessageAsync(activity, "日付が無効です。");
                 }
 
                 if (!string.IsNullOrEmpty(asin))
@@ -163,13 +163,13 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                     rec.Comment ?? "コメントなし",
                     (aft.LastOrDefault() ?? rec).Total);
 
-                return message.CreateReplyMessage(sb.ToString());
+                return await activity.ReplyToAsync(sb.ToString());
             }
         }
 
         private static readonly Regex POP = new Regex(@"^\s*pop(\s+-d\s+(?<d>[^\s]+))?(\s+|$)", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandlePopAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandlePopAsync(Activity activity, string text)
         {
             var m = POP.Match(text);
             if (!m.Success)
@@ -179,9 +179,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             var sb = new StringBuilder();
             using (var db = new ShishamoDbContext())
             {
-                if (!await IsAuthorizedAsync(message, db))
+                if (!await IsAuthorizedAsync(activity, db))
                 {
-                    return await CreateErrorMessageAsync(message, "権限がありません。");
+                    return await CreateErrorMessageAsync(activity, "権限がありません。");
                 }
 
                 IQueryable<SachikoRecord> q = db.SachikoRecords;
@@ -192,7 +192,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                     DateTime dt;
                     if (!DateTime.TryParse(d, out dt))
                     {
-                        return await CreateErrorMessageAsync(message, "日付が無効です。");
+                        return await CreateErrorMessageAsync(activity, "日付が無効です。");
                     }
 
                     var l = dt.Date;
@@ -217,15 +217,15 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 }
                 else
                 {
-                    return await CreateErrorMessageAsync(message, "レコードがありません。");
+                    return await CreateErrorMessageAsync(activity, "レコードがありません。");
                 }
-                return message.CreateReplyMessage(sb.ToString());
+                return await activity.ReplyToAsync(sb.ToString());
             }
         }
 
         private static readonly Regex CURRENT = new Regex(@"^\s*(total|current)(\s+|$)", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleCurrentAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleCurrentAsync(Activity activity, string text)
         {
             if (!CURRENT.IsMatch(text))
             {
@@ -242,19 +242,19 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 if (pt == null)
                 {
-                    return await CreateErrorMessageAsync(message, "レコードがありません。");
+                    return await CreateErrorMessageAsync(activity, "レコードがありません。");
                 }
                 else
                 {
                     sb.Success().AppendFormat(@"合計金額は{0:""\""#,0}です。", pt);
                 }
-                return message.CreateReplyMessage(sb.ToString());
+                return await activity.ReplyToAsync(sb.ToString());
             }
         }
 
         private static readonly Regex HISTORY = new Regex(@"^\s*(history|list|log)(\s+-c\s+(?<c>\d+))?(\s+|$)", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleHistoryAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleHistoryAsync(Activity activity, string text)
         {
             var m = HISTORY.Match(text);
             if (!m.Success)
@@ -298,9 +298,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 }
                 else
                 {
-                    return await CreateErrorMessageAsync(message, "レコードがありません。");
+                    return await CreateErrorMessageAsync(activity, "レコードがありません。");
                 }
-                return message.CreateReplyMessage(sb.ToString());
+                return await activity.ReplyToAsync(sb.ToString());
             }
         }
 
@@ -315,7 +315,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
         private const string ASIN_FRAGMENT = @"((?<asin>[A-Z0-9]{10})\s*|https?.*(/dp|/o/ASIN)/(?<asin>[A-Z0-9]{10}).*)";
         private static readonly Regex OTSUKAI = new Regex(@"^\s*(ots?ukai)(\s+-q\s+(?<q>\d+))?\s+" + ASIN_FRAGMENT + "$", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleOtsukaiAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleOtsukaiAsync(Activity activity, string text)
         {
             var m = OTSUKAI.Match(text);
 
@@ -354,7 +354,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                     if (tp == null)
                     {
-                        return await CreateErrorMessageAsync(message, "該当する商品が存在しません。");
+                        return await CreateErrorMessageAsync(activity, "該当する商品が存在しません。");
                     }
 
                     e.Title = tp.Title ?? e.Title;
@@ -364,13 +364,13 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 await db.SaveChangesAsync();
 
-                return message.CreateReplyMessage($"{StringBuilderHelper.SUCCESS}お使いリストに{e.Title}({e.Price}円)を追加しました。(累計{e.Quantity}個) {GetAmazonUrl(asin)}");
+                return await activity.ReplyToAsync($"{StringBuilderHelper.SUCCESS}お使いリストに{e.Title}({e.Price}円)を追加しました。(累計{e.Quantity}個) {GetAmazonUrl(asin)}");
             }
         }
 
         private static readonly Regex KAWANAI = new Regex(@"^\s*(KAWANAI)(\s+" + ASIN_FRAGMENT + ")?$", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleKawanaiAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleKawanaiAsync(Activity activity, string text)
         {
             var m = KAWANAI.Match(text);
 
@@ -392,9 +392,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                         await db.SaveChangesAsync();
 
-                        return message.CreateReplyMessage($"{StringBuilderHelper.SUCCESS}お使いリストをすべて削除しました");
+                        return await activity.ReplyToAsync($"{StringBuilderHelper.SUCCESS}お使いリストをすべて削除しました");
                     }
-                    return await CreateErrorMessageAsync(message, "お使いリストに商品が存在しません。");
+                    return await CreateErrorMessageAsync(activity, "お使いリストに商品が存在しません。");
                 }
                 else
                 {
@@ -402,7 +402,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                     if (e == null)
                     {
-                        return await CreateErrorMessageAsync(message, "お使いリストに該当する商品が存在しません。");
+                        return await CreateErrorMessageAsync(activity, "お使いリストに該当する商品が存在しません。");
                     }
                     else
                     {
@@ -410,7 +410,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                         await db.SaveChangesAsync();
 
-                        return message.CreateReplyMessage($"{StringBuilderHelper.SUCCESS}お使いリストから{e.Title}を削除しました");
+                        return await activity.ReplyToAsync($"{StringBuilderHelper.SUCCESS}お使いリストから{e.Title}を削除しました");
                     }
                 }
             }
@@ -418,7 +418,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         private static readonly Regex KAU = new Regex(@"^\s*(kau)(?<nolink>\s+-(nolink|nl))?(\s+|$)", RegexOptions.IgnoreCase);
 
-        private async Task<Message> HandleKauAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleKauAsync(Activity activity, string text)
         {
             var m = KAU.Match(text);
 
@@ -470,11 +470,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                     await db.SaveChangesAsync();
 
-                    return message.CreateReplyMessage(sb.ToString());
+                    return await activity.ReplyToAsync(sb.ToString());
                 }
                 else
                 {
-                    return await CreateErrorMessageAsync(message, "お使いリストに商品が存在しません。");
+                    return await CreateErrorMessageAsync(activity, "お使いリストに商品が存在しません。");
                 }
             }
         }
@@ -523,7 +523,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
         #endregion Amazon
 
-        private async Task<Message> HandleShowAdminAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleShowAdminAsync(Activity activity, string text)
         {
             var m = SHOW_ADMIN.Match(text);
             if (!m.Success)
@@ -540,7 +540,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 {
                     l.Add(new SachikoAdmin()
                     {
-                        Name = message.From.Name
+                        Name = activity.From.Name
                     });
 
                     db.SachikoAdmins.Add(l.Last());
@@ -553,11 +553,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                     sb.Append("* ").Append(a.Name).NewLine();
                 }
 
-                return message.CreateReplyMessage(sb.ToString());
+                return await activity.ReplyToAsync(sb.ToString());
             }
         }
 
-        private async Task<Message> HandleAddAdminAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleAddAdminAsync(Activity activity, string text)
         {
             var m = ADD_ADMIN.Match(text);
             if (!m.Success)
@@ -568,9 +568,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             var sb = new StringBuilder();
             using (var db = new ShishamoDbContext())
             {
-                if (!await IsAuthorizedAsync(message, db))
+                if (!await IsAuthorizedAsync(activity, db))
                 {
-                    return await CreateErrorMessageAsync(message, "権限がありません。");
+                    return await CreateErrorMessageAsync(activity, "権限がありません。");
                 }
 
                 var u = m.Groups[1].Value;
@@ -585,11 +585,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 await db.SaveChangesAsync();
 
-                return await CreateErrorMessageAsync(message, null);
+                return await CreateErrorMessageAsync(activity, null);
             }
         }
 
-        private async Task<Message> HandleDelAdminAsync(Message message, string text)
+        private async Task<HttpResponseMessage> HandleDelAdminAsync(Activity activity, string text)
         {
             var m = DEL_ADMIN.Match(text);
             if (!m.Success)
@@ -600,9 +600,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             var sb = new StringBuilder();
             using (var db = new ShishamoDbContext())
             {
-                if (!await IsAuthorizedAsync(message, db))
+                if (!await IsAuthorizedAsync(activity, db))
                 {
-                    return await CreateErrorMessageAsync(message, "権限がありません。");
+                    return await CreateErrorMessageAsync(activity, "権限がありません。");
                 }
 
                 var u = m.Groups[1].Value;
@@ -611,14 +611,14 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
                 await db.SaveChangesAsync();
 
-                return await CreateErrorMessageAsync(message, null);
+                return await CreateErrorMessageAsync(activity, null);
             }
         }
 
-        private Task<bool> IsAuthorizedAsync(Message message, ShishamoDbContext db)
-            => db.SachikoAdmins.AnyAsync(_ => _.Name == message.From.Name);
+        private Task<bool> IsAuthorizedAsync(Activity activity, ShishamoDbContext db)
+            => db.SachikoAdmins.AnyAsync(_ => _.Name == activity.From.Name);
 
-        private async Task<Message> CreateErrorMessageAsync(Message message, string error)
+        private async Task<HttpResponseMessage> CreateErrorMessageAsync(Activity activity, string error)
         {
             var sb = new StringBuilder();
 
@@ -629,7 +629,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
 
             await AppendSachikoAsync(sb);
 
-            return message.CreateReplyMessage(sb.ToString());
+            return await activity.ReplyToAsync(sb.ToString());
         }
 
         private async Task AppendSachikoAsync(StringBuilder sb)
