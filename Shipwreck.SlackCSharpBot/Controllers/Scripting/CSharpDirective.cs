@@ -17,11 +17,11 @@ using System.Xml.Linq;
 
 namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 {
-    internal class CSharpDirective
+    internal sealed class CSharpDirective
     {
-        private readonly Action<Match, CSharpScriptState, CSharpScriptResult> _Action;
+        private readonly Action<Match, CSharpSandboxParameter> _Action;
 
-        public CSharpDirective(string name, string corePattern, Action<Match, CSharpScriptState, CSharpScriptResult> action, string help)
+        public CSharpDirective(string name, string corePattern, Action<Match, CSharpSandboxParameter> action, string help)
         {
             Name = name;
             Pattern = new Regex(@"^\s*#" + corePattern + @"(\s+|$|\s*;)", RegexOptions.IgnoreCase);
@@ -29,7 +29,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             Help = help;
         }
 
-        public CSharpDirective(string name, string corePattern, string valuePattern, Action<Match, CSharpScriptState, CSharpScriptResult> action, string help)
+        public CSharpDirective(string name, string corePattern, string valuePattern, Action<Match, CSharpSandboxParameter> action, string help)
         {
             Name = name;
             Pattern = new Regex(@"^\s*#" + corePattern + @"\s+(?<v>" + valuePattern + @")\s*;", RegexOptions.IgnoreCase);
@@ -43,21 +43,18 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
 
         public string Help { get; }
 
-        public bool Apply(ref string code, CSharpScriptState state, CSharpScriptResult result)
+        public bool Apply(ref string code, CSharpSandboxParameter parameter)
         {
             var m = Pattern.Match(code);
 
             if (m.Success)
             {
                 code = code.Substring(m.Length);
-                ApplyCore(m, state, result);
+                _Action(m, parameter);
                 return true;
             }
 
             return false;
         }
-
-        protected virtual void ApplyCore(Match m, CSharpScriptState state, CSharpScriptResult result)
-            => _Action(m, state, result);
     }
 }

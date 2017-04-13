@@ -40,7 +40,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             return sb;
         }
 
-        public static StringBuilder AppendType(this StringBuilder sb, Type t, IReadOnlyCollection<string> ns)
+        public static StringBuilder AppendType(this StringBuilder sb, Type t, IEnumerable<string> ns)
         {
             if (t == typeof(object))
             {
@@ -270,6 +270,58 @@ namespace Shipwreck.SlackCSharpBot.Controllers
                 default:
                     return sb.Append(c);
             }
+        }
+
+        public static string ToMarkup(this object obj, IReadOnlyCollection<string> namespaces, bool blockQuote)
+        {
+            var sb = new StringBuilder();
+            if (blockQuote)
+            {
+                sb.Append("```\n");
+            }
+            sb.AppendNiceString(obj, namespaces, true);
+            if (blockQuote)
+            {
+                sb.Append("```\n");
+            }
+            return sb.ToString();
+        }
+
+        public static string GetSourceCode(this Script st)
+        {
+            if (st == null)
+            {
+                return null;
+            }
+            var sb = new StringBuilder();
+
+            if (st != null)
+            {
+                var stack = new Stack<Script>();
+                while (st != null)
+                {
+                    stack.Push(st);
+                    st = st.Previous;
+                }
+
+                foreach (var s in stack)
+                {
+                    if (!string.IsNullOrWhiteSpace(s.Code))
+                    {
+                        sb.Append(s.Code);
+                        if (sb[sb.Length - 1] == ';')
+                        {
+                            sb.AppendLine();
+                        }
+                        else
+                        {
+                            sb.AppendLine(";");
+                        }
+                        sb.AppendLine();
+                    }
+                }
+            }
+            return sb.ToString();
         }
     }
 }
