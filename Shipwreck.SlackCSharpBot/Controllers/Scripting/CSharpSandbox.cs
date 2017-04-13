@@ -16,7 +16,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
     {
         private readonly object _SandboxLock = new object();
         private AppDomain _SandboxDomain;
-        private ObjectHandle _Remote;
 
         private AppDomain SandboxDomain
         {
@@ -72,29 +71,9 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             }
         }
 
-        private CSharpRemoteSandbox Remote
-        {
-            get
-            {
-                lock (_SandboxLock)
-                {
-                    if (_Remote == null)
-                    {
-                        _Remote = Activator.CreateInstanceFrom(
-                                        SandboxDomain,
-                                        typeof(CSharpRemoteSandbox).Assembly.ManifestModule.FullyQualifiedName,
-                                        typeof(CSharpRemoteSandbox).FullName);
-                    }
-                }
-                return (CSharpRemoteSandbox)_Remote.Unwrap();
-            }
-        }
-
         public Task<CSharpSandboxResult> ExecuteAsync(CSharpSandboxParameter parameter)
             => Task.Run(() =>
             {
-                var obj = Remote;
-
                 var ph = Activator.CreateInstanceFrom(
                                     SandboxDomain,
                                     typeof(CSharpRemoteSandbox).Assembly.ManifestModule.FullyQualifiedName,
@@ -124,17 +103,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                     }
                 }
 
-                var r = obj.Execute(p);
+                var r = p.Execute();
 
                 return r;
             });
 
-
-
-        /// <summary>
-        /// インスタンスが破棄されているかどうかを示す値を取得します。
-        /// </summary>
-        protected bool IsDisposed { get; private set; }
 
         #region IDisposable メソッド
 
@@ -169,13 +142,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
         /// <param name="disposing">メソッドが<see cref="CSharpSandbox.Dispose()" />から呼び出された場合は<c>true</c>。その他の場合は<c>false</c>。</param>
         private void Dispose(bool disposing)
         {
-            if (IsDisposed)
-            {
-                return;
-            }
-
-            IsDisposed = true;
-
             if (disposing)
             {
                 // TODO:マネージ リソースの解放処理をこの位置に記述します。
@@ -183,7 +149,6 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             if (_SandboxDomain != null)
             {
                 AppDomain.Unload(_SandboxDomain);
-                _Remote = null;
                 _SandboxDomain = null;
             }
         }

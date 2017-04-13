@@ -30,5 +30,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
         public bool HasNamespace => _Namespaces?.Count > 0;
 
         public IList<string> Namespaces => _Namespaces ?? (_Namespaces = new List<string>());
+
+        public CSharpSandboxResult Execute()
+            => CSharpRemoteSandbox.Default.Execute(this);
     }
 }

@@ -57,6 +57,8 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 => Task.FromException<string>(new InvalidOperationException("標準入力を使用することはできません。"));
         }
 
+        public static readonly CSharpRemoteSandbox Default = new CSharpRemoteSandbox();
+
         private HashSet<Assembly> _Assemblies;
         private HashSet<string> _Namespaces;
 
