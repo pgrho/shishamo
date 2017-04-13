@@ -15,7 +15,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
     internal sealed class EchoSharpCommand : NamedMessageCommand
     {
         private static Regex LIST = new Regex(@"^\s*list", RegexOptions.IgnoreCase);
-        private static Regex UPDATE = new Regex(@"^\s*(?<s>add|create|upd(ate)?)\s+(?<n>\S+)\s+(?<p>\S+)\s+(?<c>.+)$", RegexOptions.IgnoreCase);
+        private static Regex UPDATE = new Regex(@"^\s*(?<s>add|create|upd(ate)?)\s+(?<n>\S+)\s+(?<p>\S+)\s+(?<c>.+)$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
         private static Regex SHOW = new Regex(@"^\s*show\s+(?<n>\S+)\s*$", RegexOptions.IgnoreCase);
         private static Regex DELETE = new Regex(@"^\s*del(elte)?\s+(?<n>\S+)\s*$", RegexOptions.IgnoreCase);
 

@@ -74,7 +74,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             return await activity.ReplyToAsync(sb.ToString());
         }
 
-        private static readonly Regex PUSH = new Regex(@"^\s*push\s+(?<i>-i\s+)?(-d\s+(?<d>[^\s]+)\s+)?(-asin\s+(?<asin>[A-Z0-9]{10})\s+)?(?<m>[-+]?\d+(,\d+)*)(\s+(?<c>.*))?$", RegexOptions.IgnoreCase);
+        private static readonly Regex PUSH = new Regex(@"^\s*push\s+(?<i>-i\s+)?(-d\s+(?<d>[^\s]+)\s+)?(-asin\s+(?<asin>[A-Z0-9]{10})\s+)?(?<m>[-+]?\d+(,\d+)*)(\s+(?<c>.*))?$", RegexOptions.IgnoreCase | RegexOptions.Singleline);
 
         private async Task<HttpResponseMessage> HandlePushAsync(Activity activity, string text)
         {
