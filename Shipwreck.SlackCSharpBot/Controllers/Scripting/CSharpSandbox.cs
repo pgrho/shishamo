@@ -148,7 +148,11 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             }
             if (_SandboxDomain != null)
             {
-                AppDomain.Unload(_SandboxDomain);
+                try
+                {
+                    AppDomain.Unload(_SandboxDomain);
+                }
+                catch { }
                 _SandboxDomain = null;
             }
         }
