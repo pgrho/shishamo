@@ -118,20 +118,20 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
                 {
                     sb.Append("# 標準出力").NewLine();
 
-                    sb.Append(r.StandardOutput).NewLine();
+                    AppendQuoted(sb, r.StandardOutput);
                 }
                 if (!string.IsNullOrEmpty(r.ErrorOutput))
                 {
                     sb.Append("# エラー出力").NewLine();
 
-                    sb.Append(r.ErrorOutput).NewLine();
+                    AppendQuoted(sb, r.ErrorOutput);
                 }
 
                 if (!string.IsNullOrEmpty(r.Exception))
                 {
                     sb.Append("# 例外").NewLine();
 
-                    sb.Append(r.Exception).NewLine();
+                    AppendQuoted(sb, r.Exception);
                 }
 
                 if (!string.IsNullOrEmpty(r.ReturnValue))
@@ -146,6 +146,18 @@ namespace Shipwreck.SlackCSharpBot.Controllers.Scripting
             }
 
             return await activity.ReplyToAsync(sb.ToString());
+        }
+
+        private static void AppendQuoted(StringBuilder sb, string t)
+        {
+            using (var sr = new StringReader(t))
+            {
+                for (var l = sr.ReadLine(); l != null; l = sr.ReadLine())
+                {
+                    sb.Append("> ").AppendLine(l);
+                }
+            }
+            sb.NewLine();
         }
 
         private static void AppendVariables(StringBuilder sb, CSharpSandboxResult r)
