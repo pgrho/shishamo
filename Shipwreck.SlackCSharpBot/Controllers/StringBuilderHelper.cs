@@ -133,7 +133,7 @@ namespace Shipwreck.SlackCSharpBot.Controllers
             if (t.IsArray)
             {
                 var i = t.GetArrayRank();
-                return sb.AppendType(t.UnderlyingSystemType, ns).Append('[').Append(',', i - 1).Append(']');
+                return sb.AppendType(t.GetElementType(), ns).Append('[').Append(',', i - 1).Append(']');
             }
             if (t.IsGenericParameter)
             {
